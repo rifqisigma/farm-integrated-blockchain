@@ -17,32 +17,35 @@ type User struct {
 	Password   string    `gorm:"not null"`
 	IsVerified bool      `gorm:"default:false"`
 	Provider   string    `gorm:"default:gmail"`
-	Status     Status    `gorm:"type:enum('consumer','farmer','distributor','seller')"`
+	Role       Status    `gorm:"type:enum('consumer','farmer','distributor','seller')"`
 	CreateTime time.Time `gorm:"autoCreateTime"`
 }
 
 type FarmerProfile struct {
-	ID       uint `gorm:"primaryKey"`
-	UserID   uint `gorm:"index"`
-	FarmName string
-	Location string
-	Harvest  []Harvest `gorm:"foreignKey:FarmerProfileId:constraint:OnDelete:CASCADE"`
+	ID      uint `gorm:"primaryKey"`
+	UserID  uint `gorm:"index"`
+	Name    string
+	Harvest []Harvest `gorm:"foreignKey:FarmerProfileId:constraint:OnDelete:CASCADE"`
 }
 
 type DistributorProfile struct {
 	ID           uint `gorm:"primaryKey"`
 	UserID       uint `gorm:"index"`
-	Warehouse    string
-	Region       string
+	Name         string
 	Distribution []Distribution `gorm:"foreignKey:DistributorProfileId:constraint:OnDelete:CASCADE"`
 }
 
 type RetailerProfile struct {
 	ID           uint `gorm:"primaryKey"`
 	UserID       uint `gorm:"index"`
-	ShopName     string
-	Market       string
+	Name         string
 	RetailerCart []RetailerCart `gorm:"foreignKey:RetailerId:constraint:OnDelete:CASCADE"`
+}
+
+type ConsumerProfile struct {
+	ID     uint   `gorm:"primaryKey"`
+	UserID uint   `gorm:"index"`
+	Name   string `gorm:"not null"`
 }
 
 type Crops struct {
