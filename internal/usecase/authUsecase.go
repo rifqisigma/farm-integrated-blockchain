@@ -12,8 +12,9 @@ type AuthUsecase interface {
 	Login(input *dto.Login) (string, string, error)
 	ValidateUser(token string) error
 	RefreshLongToken(token string) (string, error)
-	ResetPassword(input *dto.UserNewPassword) error
+	ResetPassword(input *dto.UserResetPassword) error
 	RequestResetPassword(email string) error
+	ResendVerificationEmail(email string) error
 }
 
 type authUsecase struct {
@@ -56,7 +57,7 @@ func (u *authUsecase) Login(input *dto.Login) (string, string, error) {
 		return "", "", helper.ErrLoginNotSuccess
 	}
 
-	tokenJwt, err := helper.GenerateJWT(dataUser.Email, dataUser.Role, dataUser.Id, dataUser.IsVerified)
+	tokenJwt, err := helper.GenerateJWTShortExp(dataUser.Email)
 	if err != nil {
 		return "", "", err
 	}
@@ -65,16 +66,21 @@ func (u *authUsecase) Login(input *dto.Login) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+
+	if err := u.authRepo.CreateToken(dataUser.Id, input.Token); err != nil {
+		return "", "", err
+	}
+
 	return tokenJwt, tokenJwtLongExp, nil
 }
 
 func (u *authUsecase) ValidateUser(token string) error {
-	userClaims, err := helper.ParseJWT(token)
+	userClaims, err := helper.ParseJWTShortExp(token)
 	if err != nil {
 		return err
 	}
 
-	valid, err := u.authRepo.ValidateUser(userClaims.UserID, userClaims.Email)
+	valid, err := u.authRepo.ValidateUser(userClaims.Email)
 	if err != nil {
 		return err
 	}
@@ -94,7 +100,7 @@ func (u *authUsecase) RefreshLongToken(token string) (string, error) {
 	return helper.GenerateJWTLongExp(userClaims.UserID, userClaims.Verified)
 }
 
-func (u *authUsecase) ResetPassword(input *dto.UserNewPassword) error {
+func (u *authUsecase) ResetPassword(input *dto.UserResetPassword) error {
 	jwtClaims, err := helper.ParseJWTShortExp(input.Token)
 	if err != nil {
 		return helper.ErrInvalidToken
@@ -124,5 +130,23 @@ func (u *authUsecase) RequestResetPassword(email string) error {
 	}
 
 	helper.SendEmailResetPassword(email, token)
+	return nil
+}
+
+func (u *authUsecase) ResendVerificationEmail(email string) error {
+	isExist, err := u.authRepo.CheckUserExist(email)
+	if err != nil {
+		return err
+	}
+
+	if !isExist {
+		return helper.ErrUserNotFound
+	}
+	token, err := helper.GenerateJWTShortExp(email)
+	if err != nil {
+		return err
+	}
+
+	helper.SendEmailValidateEmail(email, token)
 	return nil
 }

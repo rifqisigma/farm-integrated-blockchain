@@ -1,7 +1,8 @@
-package migrate
+package main
 
 import (
 	"farm-integrated-web3/cmd/database"
+	"farm-integrated-web3/entity"
 	"log"
 )
 
@@ -12,7 +13,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := db.AutoMigrate(); err != nil {
+	if err := db.AutoMigrate(
+		&entity.User{},
+		&entity.ConsumerProfile{},
+		&entity.DistributorProfile{},
+		&entity.FarmerProfile{},
+		&entity.RetailerProfile{},
+		&entity.Crops{},
+		&entity.Harvest{},
+		&entity.Distribution{},
+		&entity.RetailerCart{},
+		&entity.Token{},
+	); err != nil {
 		log.Fatal(err)
 	}
 

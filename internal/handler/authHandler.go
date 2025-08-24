@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -21,6 +22,7 @@ func NewAuthHandler(authUC usecase.AuthUsecase) *AuthHandler {
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var input dto.Register
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -42,7 +44,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input dto.Login
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
+		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -53,11 +55,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	shortToken, longToken, err := h.authUC.Login(&input)
 	if err != nil {
-		if err == helper.ErrLoginNotSuccess {
-			helper.HttpError(w, http.StatusUnauthorized, err.Error())
-			return
+		switch err {
+		case gorm.ErrDuplicatedKey:
+			helper.HttpError(w, http.StatusConflict, "token already exists")
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, "user not found or not verified")
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
-		helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -136,7 +141,7 @@ func (h *AuthHandler) RequestResetPassword(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
-	var input dto.UserNewPassword
+	var input dto.UserResetPassword
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -162,4 +167,24 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.HttpWriter(w, http.StatusOK, map[string]string{"message": "password has been reset successfully"})
+}
+
+func (h *AuthHandler) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
+	email := r.URL.Query().Get("email")
+	if email == "" {
+		helper.HttpError(w, http.StatusBadRequest, "email is required")
+		return
+	}
+
+	if err := h.authUC.ResendVerificationEmail(email); err != nil {
+		switch err {
+		case helper.ErrUserNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	helper.HttpWriter(w, http.StatusOK, map[string]string{"message": "please check your email to verify your account"})
 }

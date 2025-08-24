@@ -14,9 +14,10 @@ type AuthRepository interface {
 	//gmail traditional
 	Login(input *dto.Login) (*dto.LoginResponse, error)
 	Register(input *dto.Register) (*dto.RegisterResponse, error)
-	ValidateUser(id uint, email string) (bool, error)
+	ValidateUser(email string) (bool, error)
 	ChangePassword(email, password string) error
 	CheckUserExist(email string) (bool, error)
+	CreateToken(userId uint, token string) error
 }
 type authRepository struct {
 	db *gorm.DB
@@ -53,6 +54,9 @@ func (r *authRepository) Login(input *dto.Login) (*dto.LoginResponse, error) {
 	var user entity.User
 
 	if err := r.db.Where("email = ? AND is_verified = ?", input.Email, true).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, helper.ErrUserNotFound
+		}
 		return nil, err
 	}
 
@@ -67,8 +71,8 @@ func (r *authRepository) Login(input *dto.Login) (*dto.LoginResponse, error) {
 	return &result, nil
 }
 
-func (r *authRepository) ValidateUser(id uint, email string) (bool, error) {
-	if err := r.db.Model(&entity.User{}).Where("id = ? AND email = ? AND is_verified = ?", id, email, false).Error; err != nil {
+func (r *authRepository) ValidateUser(email string) (bool, error) {
+	if err := r.db.Model(&entity.User{}).Where("email = ? AND is_verified = ?", email, false).UpdateColumn("is_verified", true).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, helper.ErrUserNotFound
 		}
@@ -105,6 +109,23 @@ func (r *authRepository) DeleteAcccount(email string) error {
 	if err := r.db.Where("email = ?", email).Delete(&entity.User{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return helper.ErrUserNotFound
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (r *authRepository) CreateToken(userId uint, token string) error {
+	newToken := entity.Token{
+		UserID: userId,
+		Token:  token,
+	}
+
+	if err := r.db.Create(&newToken).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return gorm.ErrDuplicatedKey
+
 		}
 		return err
 	}

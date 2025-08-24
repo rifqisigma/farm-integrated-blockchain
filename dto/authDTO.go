@@ -2,8 +2,9 @@ package dto
 
 // gmail traditional
 type Login struct {
-	Email    string `json:"email"  validate:"required,  email"`
+	Email    string `json:"email"  validate:"required,email"`
 	Password string `json:"password"  validate:"required"`
+	Token    string `json:"-" validate:"required"`
 }
 type LoginResponse struct {
 	Id           uint
@@ -16,7 +17,6 @@ type LoginResponse struct {
 type Register struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password"  validate:"required"`
-	Provider string `json:"-" validate:"required"`
 	Name     string `json:"name" validate:"required"`
 }
 
@@ -27,7 +27,7 @@ type RegisterResponse struct {
 	Verified bool
 }
 
-type UserNewPassword struct {
+type UserResetPassword struct {
 	Email              string `json:"-" validate:"required"`
 	Token              string `json:"-" validate:"required"`
 	NewPassword        string `json:"new_password" validate:"required"`

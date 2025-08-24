@@ -17,8 +17,9 @@ type UserUsecase interface {
 	UpdateDistributorProfile(input *dto.UpdateDistributorProfile) error
 	UpdateRetailerProfile(input *dto.UpdateRetailerProfile) error
 
-	ChangePassword(input *dto.UserNewPassword) error
-	DeleteAccount(email string) error
+	ChangePassword(input *dto.UserChangePassword) error
+	DeleteAccount(useriD uint) error
+	Logout(userId uint) error
 }
 
 type userUsecase struct {
@@ -29,7 +30,7 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	return &userUsecase{userRepo}
 }
 
-func (u *userUsecase) ChangePassword(input *dto.UserNewPassword) error {
+func (u *userUsecase) ChangePassword(input *dto.UserChangePassword) error {
 	valid, err := u.userRepo.CheckUserExist(0, input.Email)
 	if err != nil {
 		return err
@@ -37,9 +38,6 @@ func (u *userUsecase) ChangePassword(input *dto.UserNewPassword) error {
 
 	if !valid {
 		return err
-	}
-	if input.ConfirmNewPassword != input.NewPassword {
-		return helper.ErrBadRequest
 	}
 
 	if err := u.userRepo.ChangePassword(input.Email, input.NewPassword); err != nil {
@@ -49,8 +47,22 @@ func (u *userUsecase) ChangePassword(input *dto.UserNewPassword) error {
 	return nil
 }
 
-func (u *userUsecase) DeleteAccount(email string) error {
-	valid, err := u.userRepo.CheckUserExist(0, email)
+func (u *userUsecase) Logout(userId uint) error {
+	valid, err := u.userRepo.CheckUserExist(userId, "")
+	if err != nil {
+		return err
+	}
+
+	if !valid {
+		return helper.ErrUserNotFound
+	}
+
+	return u.userRepo.DeleteToken(userId)
+
+}
+
+func (u *userUsecase) DeleteAccount(userId uint) error {
+	valid, err := u.userRepo.CheckUserExist(userId, "")
 	if err != nil {
 		return err
 	}
@@ -59,10 +71,13 @@ func (u *userUsecase) DeleteAccount(email string) error {
 		return err
 	}
 
-	if err := u.userRepo.DeleteAccount(email); err != nil {
+	if err := u.userRepo.DeleteAccount(userId); err != nil {
 		return err
 	}
 
+	if err := u.userRepo.DeleteToken(userId); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -41,3 +41,10 @@ type UpdateRetailerProfile struct {
 	UserId uint   `json:"-"`
 	Name   string `json:"name" validate:"required"`
 }
+
+type UserChangePassword struct {
+	Email              string `json:"-" validate:"required"`
+	Token              string `json:"-" validate:"required"`
+	NewPassword        string `json:"new_password" validate:"required"`
+	ConfirmNewPassword string `json:"confirm_new_password" validate:"required"`
+}
