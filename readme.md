@@ -2,7 +2,7 @@
 
 AgriChain Transparency Platform adalah aplikasi pertanian berbasis **Blockchain (Hyperledger)** yang berfokus pada **transparansi alur distribusi hasil pertanian**.  
 Platform ini tidak hanya mempertemukan petani, tengkulak, distributor, retailer, dan consumer, tetapi juga mencatat setiap proses distribusi secara **aman, transparan, dan tidak dapat dimanipulasi** melalui teknologi blockchain.
-Terdapat juga fitur Markerplace untuk aktivitas jual beli online yang aman dan modern.  
+Terdapat juga fitur Marketplace untuk aktivitas jual beli online yang aman dan modern.  
 
 ## ✨ Fitur Utama
 - 📦 **Traceability**: Melacak alur distribusi hasil pertanian dari petani hingga konsumen akhir.  
