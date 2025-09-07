@@ -1,0 +1,1690 @@
+definitions:
+  dto.AcceptFarmerForDistributor:
+    properties:
+      accepted:
+        type: boolean
+    required:
+    - accepted
+    type: object
+  dto.ApprovedRetailerCart:
+    properties:
+      approved:
+        type: boolean
+    required:
+    - approved
+    type: object
+  dto.CreateDistributionRequest:
+    properties:
+      final_price:
+        type: number
+      markup_price:
+        type: number
+      quantity:
+        type: number
+    required:
+    - final_price
+    - markup_price
+    - quantity
+    type: object
+  dto.CreateProfileRequest:
+    properties:
+      name:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/entity.Status'
+        enum:
+        - consumer
+        - farmer
+        - distributor
+        - retailer
+    required:
+    - name
+    - role
+    type: object
+  dto.CreateRetailerCartRequest:
+    properties:
+      quantity:
+        type: number
+    required:
+    - quantity
+    type: object
+  dto.GetDistribution:
+    properties:
+      crop_name:
+        type: string
+      distributor_name:
+        type: string
+      farmer_name:
+        type: string
+      final_price:
+        type: number
+      time:
+        type: string
+    type: object
+  dto.GetHarvestById:
+    properties:
+      accepted:
+        type: boolean
+      base_price:
+        type: number
+      crop_name:
+        type: string
+      farmer_name:
+        type: string
+      id:
+        type: integer
+      quantity:
+        type: number
+      time:
+        type: string
+    type: object
+  dto.GetListHarvest:
+    properties:
+      base_price:
+        type: number
+      crop_name:
+        type: string
+      farmer_name:
+        type: string
+      id:
+        type: integer
+      time:
+        type: string
+    type: object
+  dto.GetRetailerCart:
+    properties:
+      distributor_name:
+        type: integer
+      harvest_name:
+        type: integer
+      id:
+        type: integer
+      quantity:
+        type: number
+      retailer_name:
+        type: string
+      time:
+        type: string
+    type: object
+  dto.HarvestRequest:
+    properties:
+      basePrice:
+        type: number
+      quantity:
+        type: number
+    required:
+    - basePrice
+    - quantity
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.NewRole:
+    properties:
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/entity.Status'
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.ResponseAccessToken:
+    properties:
+      token_token:
+        example: this is access token
+        type: string
+    type: object
+  dto.ResponseError:
+    properties:
+      error:
+        example: this is error
+        type: string
+    type: object
+  dto.ResponseLogin:
+    properties:
+      access_token:
+        example: this is access token
+        type: string
+      refresh_token:
+        example: this is refresh token
+        type: string
+    type: object
+  dto.ResponseRefreshToken:
+    properties:
+      refresh_token:
+        example: this is refresh token
+        type: string
+    type: object
+  dto.UpdateDistributionRequest:
+    properties:
+      final_price:
+        type: number
+      markup_price:
+        type: number
+      quantity:
+        type: number
+    type: object
+  dto.UpdateProfileRequest:
+    properties:
+      name:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/entity.Status'
+        enum:
+        - consumer
+        - farmer
+        - distributor
+        - retailer
+    required:
+    - name
+    - role
+    type: object
+  dto.UpdateRetailerCartRequest:
+    properties:
+      quantity:
+        type: number
+    required:
+    - quantity
+    type: object
+  dto.UpdateRoleRequest:
+    properties:
+      new_role:
+        $ref: '#/definitions/dto.NewRole'
+    type: object
+  dto.UpdateStatusDistributionRequest:
+    properties:
+      status:
+        type: integer
+    type: object
+  dto.UserChangePasswordRequest:
+    properties:
+      confirm_new_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - confirm_new_password
+    - new_password
+    type: object
+  dto.UserResetPasswordRequest:
+    properties:
+      confirm_new_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - confirm_new_password
+    - new_password
+    type: object
+  entity.Status:
+    enum:
+    - consumer
+    - farmer
+    - distributor
+    - retailer
+    type: string
+    x-enum-varnames:
+    - Consumer
+    - Farmer
+    - Distributor
+    - Retailer
+info:
+  contact:
+    email: ipb_rifqi@apps.ipb.ac.id
+    name: Project Menager
+  description: This is a Backend for Agricultural of Distribution for reach transparant,
+    decentralization, and immutable.
+  termsOfService: http://swagger.io/terms/
+  title: Agrichain - Distribution API
+  version: "1.0"
+paths:
+  /auth/access-token:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint to get new access token, you must have a valid refresh
+        token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseAccessToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create new access token.
+      tags:
+      - Auth
+  /auth/delete-account:
+    delete:
+      consumes:
+      - application/json
+      description: This endpoint for delete user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete Account.
+      tags:
+      - Auth
+  /auth/gmail/forgot-password:
+    post:
+      consumes:
+      - js/ @Produce json
+      description: This endpoint for user request send link reset password at email.
+      parameters:
+      - description: query email
+        in: query
+        name: email
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Requset reset password.
+      tags:
+      - Auth
+  /auth/gmail/login:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for user login, get the access and refresh token.
+      parameters:
+      - description: Login Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseLogin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Login user
+      tags:
+      - Auth
+  /auth/gmail/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for get new refresh token, for get new Refresh token
+        you must have  a valid refresh token .
+      parameters:
+      - description: Refresh token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseRefreshToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: New Refresh Token.
+      tags:
+      - Auth
+  /auth/gmail/register:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for registery new user.
+      parameters:
+      - description: Register Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Register for new user
+      tags:
+      - Auth
+  /auth/gmail/resend-verification:
+    post:
+      consumes:
+      - js/ @Produce json
+      description: This endpoint for user request resend link reset password in email
+        if the user is late in verifying the account.
+      parameters:
+      - description: query email
+        in: query
+        name: email
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Reset Password.
+      tags:
+      - Auth
+  /auth/gmail/reset-password:
+    post:
+      consumes:
+      - js/ @Produce json
+      description: This endpoint for user request send link reset password at email.
+      parameters:
+      - description: Reset password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserResetPasswordRequest'
+      - description: token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: email
+        in: query
+        name: email
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Reset Password.
+      tags:
+      - Auth
+  /auth/gmail/verification:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint will send on your email and for validating user.
+      parameters:
+      - description: Token validasi user
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Validation User.
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for Logout.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Logout.
+      tags:
+      - Auth
+  /distribution:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get distributions by distributor id.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetDistribution'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetDistribution'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get distributions by distributor id.
+      tags:
+      - Distributor
+  /distribution/{distribution}:
+    delete:
+      consumes:
+      - application/json
+      description: This endpoint for distributor delete distribution.
+      parameters:
+      - description: distribution id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete Distribution.
+      tags:
+      - Distributor
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get detail information of distribution.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetHarvestById'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get distribution by id.
+      tags:
+      - Distributor
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for distributor  update distribution.
+      parameters:
+      - description: distribution id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      - description: request body update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateDistributionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update Distributions.
+      tags:
+      - Distributor
+  /distribution/{distribution}/status:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for update Status Distribution.
+      parameters:
+      - description: distribution cart id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusDistributionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update Status distribution.
+      tags:
+      - Distributor
+  /distribution/harvest/{harvest}:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for distributor create distribution.
+      parameters:
+      - description: harvest id
+        in: path
+        name: harvest
+        required: true
+        type: integer
+      - description: request body create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDistributionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create Distributions.
+      tags:
+      - Distributor
+  /distribution/retailer-cart/{retailerCart}:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for distributor approve retailer cart.
+      parameters:
+      - description: retailer cart id
+        in: path
+        name: retailerCart
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ApprovedRetailerCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Approved retailer cart.
+      tags:
+      - Distributor
+  /distribution/search:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for search distributions.
+      parameters:
+      - description: query search
+        in: query
+        name: search
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetDistribution'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetDistribution'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Search Distributions.
+      tags:
+      - Distributor
+  /farm/distribution/{distribution}:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for farmer accept the distribution, the distribution
+        cant proceed  to next step if farmer not yet accept it.
+      parameters:
+      - description: distribution id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      - description: request body accept
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AcceptFarmerForDistributor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Accepted distribution for distributor.
+      tags:
+      - Farmer
+  /farm/harvest:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for farmer get their own harvests.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get Harvest by Farmer Id.
+      tags:
+      - Farmer
+  /farm/harvest/{harvest}:
+    delete:
+      consumes:
+      - application/json
+      description: This endpoint for farmer delete the harvest.
+      parameters:
+      - description: harvest id
+        in: path
+        name: harvest
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete harvest for farmer.
+      tags:
+      - Farmer
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for a get detail information of a harvest.
+      parameters:
+      - description: harvest id
+        in: path
+        name: harvest
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetHarvestById'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get harvest by id.
+      tags:
+      - Farmer
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for farmer update data of harvest .
+      parameters:
+      - description: harvest id
+        in: path
+        name: harvest
+        required: true
+        type: integer
+      - description: crop id
+        in: path
+        name: crop
+        required: true
+        type: integer
+      - description: update harvest
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.HarvestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update harvest for farmer.
+      tags:
+      - Farmer
+  /farm/harvest/crop/{crop}:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for farmer increase the harvest so that it can be
+        distributed by distributors .
+      parameters:
+      - description: crop id
+        in: path
+        name: crop
+        required: true
+        type: integer
+      - description: create harvest
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.HarvestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create harvest for farmer.
+      tags:
+      - Farmer
+  /farm/search:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for search harvest by crop name and a name farmer.
+      parameters:
+      - description: query search
+        in: query
+        name: search
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetHarvestById'
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Search harvest.
+      tags:
+      - Farmer
+  /retail:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get the retailer cart from retailer id.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get retailer cart by retailer id.
+      tags:
+      - Retailer
+  /retail/{retailer}:
+    delete:
+      consumes:
+      - application/json
+      description: This endpoint for retailer delete the cart of distribution form
+        distribution.
+      parameters:
+      - description: retailer id
+        in: path
+        name: retailer
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete retailer cart.
+      tags:
+      - Retailer
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get the retailer cart from retailer id.
+      parameters:
+      - description: retailer id
+        in: query
+        name: retailer
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get retailer cart by retailer id.
+      tags:
+      - Retailer
+  /retail/{retailer}/distribution/{distribution}:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for retailer update the cart of distribution form
+        distribution.
+      parameters:
+      - description: distribution id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      - description: retailer id
+        in: path
+        name: retailer
+        required: true
+        type: integer
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRetailerCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update retailer cart.
+      tags:
+      - Retailer
+  /retail/distribution/{distribution}:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for retailer add the cart of distribution form distribution.
+      parameters:
+      - description: distribution id
+        in: path
+        name: distribution
+        required: true
+        type: integer
+      - description: request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRetailerCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Add retailer cart.
+      tags:
+      - Retailer
+  /retail/search:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for search the  cart of distribution form retailer
+        cart.
+      parameters:
+      - description: search
+        in: query
+        name: search
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetRetailerCart'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Search retailer cart.
+      tags:
+      - Retailer
+  /user/{id}/profile:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for new user create profile for first if yser skip
+        it, then consumer.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: create profile
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Create profile.
+      tags:
+      - User
+  /user/change-password:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint for user want ti change password in app.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: change password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Change password by email.
+      tags:
+      - User
+  /user/role:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for user update role, the old role must a consumer
+        and can update only one chance, the update role is a farmer, distributor,
+        retailer.
+      parameters:
+      - description: update role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update Role.
+      tags:
+      - User
+  /user/update:
+    patch:
+      consumes:
+      - application/json
+      description: This endpoint for user update their profile.
+      parameters:
+      - description: update profile
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update profil.
+      tags:
+      - User
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
