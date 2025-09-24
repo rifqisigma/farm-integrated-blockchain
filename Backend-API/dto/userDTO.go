@@ -32,3 +32,12 @@ type NewRole struct {
 	Role entity.Status `json:"role"`
 	Name string        `json:"name"`
 }
+
+type GetUser struct {
+	Id         uint          `json:"id" gorm:"id"`
+	Email      string        `json:"email" gorm:"email"`
+	IsVerified string        `json:"is_verified" gorm:"is_verified"`
+	Provider   string        `json:"provider" gorm:"provider"`
+	Role       entity.Status `json:"role" gorm:"role"`
+	Data       interface{}   `json:"data"`
+}

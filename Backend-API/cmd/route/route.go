@@ -44,6 +44,7 @@ func NewRoutes(auth *handler.AuthHandler, user *handler.UserHandler, farmer *han
 	userPath.HandleFunc("/profile", user.UpdateProfile).Methods(http.MethodPatch)
 	userPath.HandleFunc("/role", user.UpdateRole).Methods(http.MethodPost)
 	userPath.HandleFunc("/change-password", user.ChangePassword).Methods(http.MethodPost)
+	userPath.HandleFunc("/me", user.Me).Methods(http.MethodGet)
 
 	//farm
 	farmerPath := r.PathPrefix("/farm").Subrouter()
@@ -56,12 +57,13 @@ func NewRoutes(auth *handler.AuthHandler, user *handler.UserHandler, farmer *han
 	farmerPath.HandleFunc("/harvest", farmer.ListHarvestByFarmerId).Methods(http.MethodGet)
 	farmerPath.HandleFunc("/harvest/{harvest}", farmer.HarvestById).Methods(http.MethodGet)
 	farmerPath.HandleFunc("/harvest/search", farmer.SearchHarvest).Methods(http.MethodGet)
+	farmerPath.HandleFunc("/fyp", farmer.ListHarvestFYP).Methods(http.MethodGet)
 
 	//distributor
 	distributionPath := r.PathPrefix("/distribution").Subrouter()
 	distributionPath.Use(middlewareAuth.Auth)
 
-	distributionPath.HandleFunc("/harvest/{harvest}", distributor.CreateDistribution).Methods(http.MethodPost)
+	distributionPath.HandleFunc("/farmer/{farmerprofile}/harvest/{harvest}", distributor.CreateDistribution).Methods(http.MethodPost)
 	distributionPath.HandleFunc("/{distribution}", distributor.UpdateDistribution).Methods(http.MethodPatch)
 	distributionPath.HandleFunc("/{distribution}/status", distributor.UpdateStatusDistribution).Methods(http.MethodPatch)
 	distributionPath.HandleFunc("/{distribution}", distributor.DeleteDistribution).Methods(http.MethodDelete)
@@ -70,17 +72,18 @@ func NewRoutes(auth *handler.AuthHandler, user *handler.UserHandler, farmer *han
 	distributionPath.HandleFunc("/{distribution}", distributor.GetDistributionById).Methods(http.MethodGet)
 	distributionPath.HandleFunc("/{distribution}/status", distributor.UpdateStatusDistribution).Methods(http.MethodPatch)
 	distributionPath.HandleFunc("/retailer-cart/{retailerCart", distributor.ApprovedRetailerCartForRetailer).Methods(http.MethodPatch)
+	distributionPath.HandleFunc("/fyp", distributor.GetDistributionFYP).Methods(http.MethodGet)
 
 	//retailer
 	retailerPath := r.PathPrefix("/retail").Subrouter()
 	retailerPath.Use(middlewareAuth.Auth)
-
 	retailerPath.HandleFunc("/distribution/{distribution}", retailer.AddRetailerCart).Methods(http.MethodPost)
 	retailerPath.HandleFunc("/{retailer}/distribution/{distribution}", retailer.UpdateRetailerCart).Methods(http.MethodPatch)
 	retailerPath.HandleFunc("/{retailer}", retailer.DeleteRetailerCart).Methods(http.MethodDelete)
 	retailerPath.HandleFunc("/search", retailer.SearchRetailerCart).Methods(http.MethodGet)
 	retailerPath.HandleFunc("", retailer.GetRetailerCarts).Methods(http.MethodGet)
 	retailerPath.HandleFunc("/{retailer}", retailer.GetRetailerCartById).Methods(http.MethodGet)
+	retailerPath.HandleFunc("/fyp", retailer.GetRetailerCartsFYP).Methods(http.MethodGet)
 
 	return r
 }

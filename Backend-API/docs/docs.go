@@ -309,44 +309,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/gmail/resend-verification": {
-            "post": {
-                "description": "This endpoint for user request resend link reset password in email if the user is late in verifying the account.",
-                "consumes": [
-                    "js/ @Produce json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Reset Password.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "query email",
-                        "name": "email",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/gmail/reset-password": {
             "post": {
                 "description": "This endpoint for user request send link reset password at email.",
@@ -573,7 +535,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/distribution/harvest/{harvest}": {
+        "/distribution/farmer/{farmerprofile}/harvest/{harvest}": {
             "patch": {
                 "security": [
                     {
@@ -596,6 +558,13 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "harvest id",
                         "name": "harvest",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "farmer profile id",
+                        "name": "farmerprofile",
                         "in": "path",
                         "required": true
                     },
@@ -720,7 +689,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for search distributions.",
+                "description": "This endpoint for get FYP distributions.",
                 "consumes": [
                     "application/json"
                 ],
@@ -730,16 +699,7 @@ const docTemplate = `{
                 "tags": [
                     "Distributor"
                 ],
-                "summary": "Search Distributions.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "query search",
-                        "name": "search",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
+                "summary": "Get FYP Distributions.",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1082,6 +1042,70 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/farm/fyp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get FYP harvest.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farmer"
+                ],
+                "summary": "Get FYP harvest.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvest"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvest"
+                            }
                         }
                     },
                     "401": {
@@ -1480,7 +1504,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.GetHarvestById"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvest"
+                            }
                         }
                     },
                     "204": {
@@ -1724,7 +1751,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for get the retailer cart from retailer id.",
+                "description": "This endpoint for get FYP the retailer cart.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1734,16 +1761,7 @@ const docTemplate = `{
                 "tags": [
                     "Retailer"
                 ],
-                "summary": "Get retailer cart by retailer id.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "retailer id",
-                        "name": "retailer",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
+                "summary": "Get FYP retailer cart .",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1999,6 +2017,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get detail info user .",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Me.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetUser"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/user/role": {
             "patch": {
                 "security": [
@@ -2214,7 +2266,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "accepted": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -2225,7 +2278,36 @@ const docTemplate = `{
             ],
             "properties": {
                 "approved": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.Country": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Indonesia"
+                },
+                "region": {
+                    "$ref": "#/definitions/dto.Region"
+                }
+            }
+        },
+        "dto.CountryRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "region"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Indonesia"
+                },
+                "region": {
+                    "$ref": "#/definitions/dto.RegionRequest"
                 }
             }
         },
@@ -2238,13 +2320,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "final_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 220
                 },
                 "markup_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 20
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 200.5
                 }
             }
         },
@@ -2280,7 +2365,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 600.5
                 }
             }
         },
@@ -2299,6 +2385,13 @@ const docTemplate = `{
                 "final_price": {
                     "type": "number"
                 },
+                "id": {
+                    "type": "integer"
+                },
+                "regency_name": {
+                    "type": "string",
+                    "example": "Bogor"
+                },
                 "time": {
                     "type": "string"
                 }
@@ -2308,25 +2401,36 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "accepted": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "base_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 100000000
                 },
                 "crop_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Corn"
                 },
                 "farmer_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Wayulo"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 192
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 100
+                },
+                "regency_name": {
+                    "type": "string",
+                    "example": "Bogor"
                 },
                 "time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
                 }
             }
         },
@@ -2334,19 +2438,31 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "base_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 100000000
+                },
+                "country": {
+                    "$ref": "#/definitions/dto.Country"
                 },
                 "crop_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "rice"
                 },
                 "farmer_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kartosuryo"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
+                },
+                "regency_name": {
+                    "type": "string",
+                    "example": "Bogor"
                 },
                 "time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
                 }
             }
         },
@@ -2354,22 +2470,48 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "distributor_name": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": "Gopher"
                 },
                 "harvest_name": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": ""
                 },
                 "id": {
                     "type": "integer"
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 35.32
                 },
                 "retailer_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Siti"
                 },
                 "time": {
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
+                }
+            }
+        },
+        "dto.GetUser": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "email": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_verified": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/entity.Status"
                 }
             }
         },
@@ -2377,14 +2519,25 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "basePrice",
+                "country",
+                "name",
                 "quantity"
             ],
             "properties": {
                 "basePrice": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 200000000
+                },
+                "country": {
+                    "$ref": "#/definitions/dto.CountryRequest"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Jagung ke-1"
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 100
                 }
             }
         },
@@ -2396,10 +2549,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "rajaSukasari@gmail.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "12345678"
                 }
             }
         },
@@ -2414,6 +2569,55 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Regency": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Bogor"
+                }
+            }
+        },
+        "dto.RegencyRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Bogor"
+                }
+            }
+        },
+        "dto.Region": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Jawa Barat"
+                },
+                "regency": {
+                    "$ref": "#/definitions/dto.Regency"
+                }
+            }
+        },
+        "dto.RegionRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "regency"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "Jawa Barat"
+                },
+                "regency": {
+                    "$ref": "#/definitions/dto.RegencyRequest"
+                }
+            }
+        },
         "dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -2423,13 +2627,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "rajaSukasari@gmail.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "name"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234567"
                 }
             }
         },
@@ -2477,13 +2684,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "final_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 350
                 },
                 "markup_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 50
                 },
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 20.7
                 }
             }
         },
@@ -2519,7 +2729,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "quantity": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 34
                 }
             }
         },
@@ -2535,7 +2746,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 7
                 }
             }
         },
@@ -2562,10 +2774,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "confirm_new_password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "7654321"
                 },
                 "new_password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "7654321"
                 }
             }
         },
@@ -2575,13 +2789,15 @@ const docTemplate = `{
                 "consumer",
                 "farmer",
                 "distributor",
-                "retailer"
+                "retailer",
+                "admin"
             ],
             "x-enum-varnames": [
                 "Consumer",
                 "Farmer",
                 "Distributor",
-                "Retailer"
+                "Retailer",
+                "Admin"
             ]
         }
     },
@@ -2604,7 +2820,7 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a Backend for Agricultural of Distribution for reach transparant, decentralization, and immutable.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	
+
 }
 
 func init() {

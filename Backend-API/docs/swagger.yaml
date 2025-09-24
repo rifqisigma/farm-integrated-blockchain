@@ -2,6 +2,7 @@ definitions:
   dto.AcceptFarmerForDistributor:
     properties:
       accepted:
+        example: true
         type: boolean
     required:
     - accepted
@@ -9,17 +10,40 @@ definitions:
   dto.ApprovedRetailerCart:
     properties:
       approved:
+        example: true
         type: boolean
     required:
     - approved
     type: object
+  dto.Country:
+    properties:
+      name:
+        example: Indonesia
+        type: string
+      region:
+        $ref: '#/definitions/dto.Region'
+    type: object
+  dto.CountryRequest:
+    properties:
+      name:
+        example: Indonesia
+        type: string
+      region:
+        $ref: '#/definitions/dto.RegionRequest'
+    required:
+    - name
+    - region
+    type: object
   dto.CreateDistributionRequest:
     properties:
       final_price:
+        example: 220
         type: number
       markup_price:
+        example: 20
         type: number
       quantity:
+        example: 200.5
         type: number
     required:
     - final_price
@@ -45,6 +69,7 @@ definitions:
   dto.CreateRetailerCartRequest:
     properties:
       quantity:
+        example: 600.5
         type: number
     required:
     - quantity
@@ -59,69 +84,124 @@ definitions:
         type: string
       final_price:
         type: number
+      id:
+        type: integer
+      regency_name:
+        example: Bogor
+        type: string
       time:
         type: string
     type: object
   dto.GetHarvestById:
     properties:
       accepted:
+        example: true
         type: boolean
       base_price:
+        example: 100000000
         type: number
       crop_name:
+        example: Corn
         type: string
       farmer_name:
+        example: Wayulo
         type: string
       id:
+        example: 192
         type: integer
       quantity:
+        example: 100
         type: number
+      regency_name:
+        example: Bogor
+        type: string
       time:
+        example: "2025-10-09T15:04:05Z"
         type: string
     type: object
   dto.GetListHarvest:
     properties:
       base_price:
+        example: 100000000
         type: number
+      country:
+        $ref: '#/definitions/dto.Country'
       crop_name:
+        example: rice
         type: string
       farmer_name:
+        example: Kartosuryo
         type: string
       id:
+        example: 1
         type: integer
+      regency_name:
+        example: Bogor
+        type: string
       time:
+        example: "2025-10-09T15:04:05Z"
         type: string
     type: object
   dto.GetRetailerCart:
     properties:
       distributor_name:
-        type: integer
+        example: Gopher
+        type: string
       harvest_name:
-        type: integer
+        example: ""
+        type: string
       id:
         type: integer
       quantity:
+        example: 35.32
         type: number
       retailer_name:
+        example: Siti
         type: string
       time:
+        example: "2025-10-09T15:04:05Z"
         type: string
+    type: object
+  dto.GetUser:
+    properties:
+      data: {}
+      email:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: string
+      provider:
+        type: string
+      role:
+        $ref: '#/definitions/entity.Status'
     type: object
   dto.HarvestRequest:
     properties:
       basePrice:
+        example: 200000000
         type: number
+      country:
+        $ref: '#/definitions/dto.CountryRequest'
+      name:
+        example: Jagung ke-1
+        type: string
       quantity:
+        example: 100
         type: number
     required:
     - basePrice
+    - country
+    - name
     - quantity
     type: object
   dto.LoginRequest:
     properties:
       email:
+        example: rajaSukasari@gmail.com
         type: string
       password:
+        example: "12345678"
         type: string
     required:
     - email
@@ -134,13 +214,49 @@ definitions:
       role:
         $ref: '#/definitions/entity.Status'
     type: object
+  dto.Regency:
+    properties:
+      name:
+        example: Bogor
+        type: string
+    type: object
+  dto.RegencyRequest:
+    properties:
+      name:
+        example: Bogor
+        type: string
+    required:
+    - name
+    type: object
+  dto.Region:
+    properties:
+      name:
+        example: Jawa Barat
+        type: string
+      regency:
+        $ref: '#/definitions/dto.Regency'
+    type: object
+  dto.RegionRequest:
+    properties:
+      name:
+        example: Jawa Barat
+        type: string
+      regency:
+        $ref: '#/definitions/dto.RegencyRequest'
+    required:
+    - name
+    - regency
+    type: object
   dto.RegisterRequest:
     properties:
       email:
+        example: rajaSukasari@gmail.com
         type: string
       name:
+        example: name
         type: string
       password:
+        example: "1234567"
         type: string
     required:
     - email
@@ -177,10 +293,13 @@ definitions:
   dto.UpdateDistributionRequest:
     properties:
       final_price:
+        example: 350
         type: number
       markup_price:
+        example: 50
         type: number
       quantity:
+        example: 20.7
         type: number
     type: object
   dto.UpdateProfileRequest:
@@ -202,6 +321,7 @@ definitions:
   dto.UpdateRetailerCartRequest:
     properties:
       quantity:
+        example: 34
         type: number
     required:
     - quantity
@@ -214,6 +334,7 @@ definitions:
   dto.UpdateStatusDistributionRequest:
     properties:
       status:
+        example: 7
         type: integer
     type: object
   dto.UserChangePasswordRequest:
@@ -229,8 +350,10 @@ definitions:
   dto.UserResetPasswordRequest:
     properties:
       confirm_new_password:
+        example: "7654321"
         type: string
       new_password:
+        example: "7654321"
         type: string
     required:
     - confirm_new_password
@@ -242,12 +365,14 @@ definitions:
     - farmer
     - distributor
     - retailer
+    - admin
     type: string
     x-enum-varnames:
     - Consumer
     - Farmer
     - Distributor
     - Retailer
+    - Admin
 info:
   contact:
     email: ipb_rifqi@apps.ipb.ac.id
@@ -446,32 +571,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.ResponseError'
       summary: Register for new user
-      tags:
-      - Auth
-  /auth/gmail/resend-verification:
-    post:
-      consumes:
-      - js/ @Produce json
-      description: This endpoint for user request resend link reset password in email
-        if the user is late in verifying the account.
-      parameters:
-      - description: query email
-        in: query
-        name: email
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/dto.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/dto.ResponseError'
-      summary: Reset Password.
       tags:
       - Auth
   /auth/gmail/reset-password:
@@ -783,7 +882,7 @@ paths:
       summary: Update Status distribution.
       tags:
       - Distributor
-  /distribution/harvest/{harvest}:
+  /distribution/farmer/{farmerprofile}/harvest/{harvest}:
     patch:
       consumes:
       - application/json
@@ -792,6 +891,11 @@ paths:
       - description: harvest id
         in: path
         name: harvest
+        required: true
+        type: integer
+      - description: farmer profile id
+        in: path
+        name: farmerprofile
         required: true
         type: integer
       - description: request body create
@@ -877,13 +981,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: This endpoint for search distributions.
-      parameters:
-      - description: query search
-        in: query
-        name: search
-        required: true
-        type: string
+      description: This endpoint for get FYP distributions.
       produces:
       - application/json
       responses:
@@ -917,7 +1015,7 @@ paths:
             $ref: '#/definitions/dto.ResponseError'
       security:
       - BearerAuth: []
-      summary: Search Distributions.
+      summary: Get FYP Distributions.
       tags:
       - Distributor
   /farm/distribution/{distribution}:
@@ -966,6 +1064,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Accepted distribution for distributor.
+      tags:
+      - Farmer
+  /farm/fyp:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get FYP harvest.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
+        "204":
+          description: No Content
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get FYP harvest.
       tags:
       - Farmer
   /farm/harvest:
@@ -1204,7 +1343,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.GetHarvestById'
+            items:
+              $ref: '#/definitions/dto.GetListHarvest'
+            type: array
         "204":
           description: No Content
           schema:
@@ -1314,13 +1455,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: This endpoint for get the retailer cart from retailer id.
-      parameters:
-      - description: retailer id
-        in: query
-        name: retailer
-        required: true
-        type: integer
+      description: This endpoint for get FYP the retailer cart.
       produces:
       - application/json
       responses:
@@ -1350,7 +1485,7 @@ paths:
             $ref: '#/definitions/dto.ResponseError'
       security:
       - BearerAuth: []
-      summary: Get retailer cart by retailer id.
+      summary: Get FYP retailer cart .
       tags:
       - Retailer
   /retail/{retailer}/distribution/{distribution}:
@@ -1592,6 +1727,27 @@ paths:
       security:
       - BearerAuth: []
       summary: Change password by email.
+      tags:
+      - User
+  /user/me:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint for get detail info user .
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetUser'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Me.
       tags:
       - User
   /user/role:

@@ -1,38 +1,40 @@
 package repository
 
 import (
+	"context"
+	"encoding/json"
 	"farm-integrated-web3/dto"
 	"farm-integrated-web3/entity"
 	"farm-integrated-web3/utils/helper"
+	"fmt"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type RetailerRepository interface {
-	AddRetailerCart(input *dto.CreateRetailerCartRequest) error
-	UpdateRetailerCart(input *dto.UpdateRetailerCartRequest) error
-	DeleteRetailerCart(retailerCartId, retailerId uint) error
-	SearchRetailerCart(search string) ([]dto.GetRetailerCart, error)
-	GetRetailerCarts(retailerProfileId uint) ([]dto.GetRetailerCart, error)
-	GetRetailerCartById(retailerCartId uint) (*dto.GetRetailerCartById, error)
+	AddRetailerCart(ctx context.Context, input *dto.CreateRetailerCartRequest) error
+	UpdateRetailerCart(ctx context.Context, input *dto.UpdateRetailerCartRequest) error
+	DeleteRetailerCart(ctx context.Context, retailerCartId, retailerId uint) error
+	SearchRetailerCart(ctx context.Context, search string) ([]dto.GetRetailerCart, error)
+	GetRetailerCarts(ctx context.Context, retailerProfileId uint) ([]dto.GetRetailerCart, error)
+	GetRetailerCartById(ctx context.Context, retailerCartId uint) (*dto.GetRetailerCartById, error)
+	GetRetailerCartsFYP(ctx context.Context) ([]dto.GetRetailerCart, error)
 }
 
 type retailerRepository struct {
-	db *gorm.DB
+	db    *gorm.DB
+	redis *redis.Client
 }
 
-func NewRetailerRepository(db *gorm.DB) RetailerRepository {
-	return &retailerRepository{db}
+func NewRetailerRepository(db *gorm.DB, redis *redis.Client) RetailerRepository {
+	return &retailerRepository{db, redis}
 }
 
-func (r *retailerRepository) AddRetailerCart(input *dto.CreateRetailerCartRequest) error {
-	tx := r.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+func (r *retailerRepository) AddRetailerCart(ctx context.Context, input *dto.CreateRetailerCartRequest) error {
+	tx := r.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
 
 	var quantity float64
 	res := tx.Model(&entity.Distribution{}).Select("quantity").Where("id = ? AND approved_by_farmer = ? AND is_canceled = ? ", input.DistributionId, true, false).Scan(&quantity)
@@ -62,16 +64,30 @@ func (r *retailerRepository) AddRetailerCart(input *dto.CreateRetailerCartReques
 		return err
 	}
 
+	keyRetailer := fmt.Sprintf("retail:retailer:%d", newRetailerCart.RetailerProfileId)
+	keyRetail := fmt.Sprintf("retail:%d", newRetailerCart.ID)
+	keyFYP := fmt.Sprintln("retail:fyp")
+	_, err := r.redis.Pipelined(ctx, func(p redis.Pipeliner) error {
+		p.Del(ctx, keyRetailer)
+		p.Del(ctx, keyRetail)
+		p.Del(ctx, keyFYP)
+		keys, _ := r.redis.Keys(ctx, "retailer:search:*").Result()
+		if len(keys) > 0 {
+			r.redis.Del(ctx, keys...)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit().Error
 }
 
-func (r *retailerRepository) UpdateRetailerCart(input *dto.UpdateRetailerCartRequest) error {
-	tx := r.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+func (r *retailerRepository) UpdateRetailerCart(ctx context.Context, input *dto.UpdateRetailerCartRequest) error {
+	tx := r.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
 
 	var validation dto.DataValidationRetailer
 	res := tx.Model(&entity.Distribution{}).Select("quantity, create_time").Where("id = ? AND approved_by_farmer = ? AND is_canceled =?", input.DistributionId, true, false).Scan(&validation)
@@ -109,16 +125,30 @@ func (r *retailerRepository) UpdateRetailerCart(input *dto.UpdateRetailerCartReq
 		return gorm.ErrRecordNotFound
 	}
 
+	keyRetailer := fmt.Sprintf("retail:retailer:%d", input.RetailerProfileId)
+	keyRetail := fmt.Sprintf("retail:%d", input.RetailerCartId)
+	keyFYP := fmt.Sprintln("retail:fyp")
+	_, err := r.redis.Pipelined(ctx, func(p redis.Pipeliner) error {
+		p.Del(ctx, keyRetailer)
+		p.Del(ctx, keyRetail)
+		p.Del(ctx, keyFYP)
+		keys, _ := r.redis.Keys(ctx, "retailer:search:*").Result()
+		if len(keys) > 0 {
+			r.redis.Del(ctx, keys...)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit().Error
 }
 
-func (r *retailerRepository) DeleteRetailerCart(retailerCartId, retailerId uint) error {
-	tx := r.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+func (r *retailerRepository) DeleteRetailerCart(ctx context.Context, retailerCartId, retailerId uint) error {
+	tx := r.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
 
 	var dataTime time.Time
 	res := tx.Model(&entity.RetailerCart{}).Select("create_time").Where("id = ? AND approved_by_farmer = ? AND is_canceled = ?", retailerCartId, true, false).Scan(&dataTime)
@@ -145,13 +175,40 @@ func (r *retailerRepository) DeleteRetailerCart(retailerCartId, retailerId uint)
 		return gorm.ErrRecordNotFound
 	}
 
+	keyRetailer := fmt.Sprintf("retail:retailer:%d", retailerId)
+	keyRetail := fmt.Sprintf("retail:%d", retailerCartId)
+	keyFYP := fmt.Sprintln("retail:fyp")
+	_, err := r.redis.Pipelined(ctx, func(p redis.Pipeliner) error {
+		p.Del(ctx, keyRetailer)
+		p.Del(ctx, keyRetail)
+		p.Del(ctx, keyFYP)
+		keys, _ := r.redis.Keys(ctx, "retailer:search:*").Result()
+		if len(keys) > 0 {
+			r.redis.Del(ctx, keys...)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit().Error
 }
 
-func (r *retailerRepository) SearchRetailerCart(search string) ([]dto.GetRetailerCart, error) {
+func (r *retailerRepository) SearchRetailerCart(ctx context.Context, search string) ([]dto.GetRetailerCart, error) {
 	input := "%" + search + "%"
 	var result []dto.GetRetailerCart
-	if err := r.db.Model(&entity.RetailerCart{}).
+
+	key := fmt.Sprintf("retailer:search:%s", search)
+	val, err := r.redis.Get(ctx, key).Result()
+	if err == nil {
+		if err := json.Unmarshal([]byte(val), &result); err != nil {
+			return result, nil
+		}
+	}
+
+	if err := r.db.WithContext(ctx).Model(&entity.RetailerCart{}).
 		Select("retailer_carts.id as id", "cp.crop as hs_name", "dp.name as distributor_name", "rs.name as retailer_name", "retailer_carts.quantity", "retailer_carts.update_time as time").
 		Joins("JOIN distributions as ds ON ds.id = retailer_carts.id").
 		Joins("JOIM distrbutor_profiles as dp ON dp.id = retailer_carts.distributor_profile_id").
@@ -167,12 +224,27 @@ func (r *retailerRepository) SearchRetailerCart(search string) ([]dto.GetRetaile
 	if len(result) == 0 {
 		return result, gorm.ErrEmptySlice
 	}
+
+	jsonData, _ := json.Marshal(result)
+	if err := r.redis.Set(ctx, key, jsonData, 5*time.Minute).Err(); err != nil {
+		return nil, err
+	}
+
 	return result, nil
 }
 
-func (r *retailerRepository) GetRetailerCarts(retailerProfileId uint) ([]dto.GetRetailerCart, error) {
+func (r *retailerRepository) GetRetailerCarts(ctx context.Context, retailerProfileId uint) ([]dto.GetRetailerCart, error) {
 	var result []dto.GetRetailerCart
-	if err := r.db.Model(&entity.RetailerCart{}).
+	key := fmt.Sprintf("retail:retailer:%d", retailerProfileId)
+
+	val, err := r.redis.Get(ctx, key).Result()
+	if err == nil {
+		if err := json.Unmarshal([]byte(val), &result); err != nil {
+			return result, nil
+		}
+	}
+
+	if err := r.db.WithContext(ctx).Model(&entity.RetailerCart{}).
 		Select("retailer_carts.id as id", "cp.crop as hs_name", "dp.name as distributor_name", "rs.name as retailer_name", "retailer_carts.quantity", "retailer_carts.update_time as time").
 		Joins("JOIN distributions as ds ON ds.id = retailer_carts.id").
 		Joins("JOIM distrbutor_profiles as dp ON dp.id = retailer_carts.distributor_profile_id").
@@ -189,12 +261,26 @@ func (r *retailerRepository) GetRetailerCarts(retailerProfileId uint) ([]dto.Get
 		return result, gorm.ErrEmptySlice
 	}
 
+	jsonData, _ := json.Marshal(result)
+	if err := r.redis.Set(ctx, key, jsonData, 5*time.Minute).Err(); err != nil {
+		return nil, err
+	}
+
 	return result, nil
 }
 
-func (r *retailerRepository) GetRetailerCartById(retailerCartId uint) (*dto.GetRetailerCartById, error) {
+func (r *retailerRepository) GetRetailerCartById(ctx context.Context, retailerCartId uint) (*dto.GetRetailerCartById, error) {
 	var result dto.GetRetailerCartById
-	res := r.db.Model(&entity.RetailerCart{}).
+	key := fmt.Sprintf("retail:%d", retailerCartId)
+
+	val, err := r.redis.Get(ctx, key).Result()
+	if err == nil {
+		if err := json.Unmarshal([]byte(val), &result); err != nil {
+			return &result, nil
+		}
+	}
+
+	res := r.db.WithContext(ctx).Model(&entity.RetailerCart{}).
 		Select("retailer_carts.id as id", "cp.crop as hs_name", "dp.name as distributor_name", "rs.name as retailer_name", "retailer_carts.quantity", "retailer_carts.update_time as time", "retailer_carts.block_hash as block_hash").
 		Joins("JOIN distributions as ds ON ds.id = retailer_carts.id").
 		Joins("JOIM distrbutor_profiles as dp ON dp.id = retailer_carts.distributor_profile_id").
@@ -211,5 +297,51 @@ func (r *retailerRepository) GetRetailerCartById(retailerCartId uint) (*dto.GetR
 		return nil, gorm.ErrRecordNotFound
 	}
 
+	jsonData, _ := json.Marshal(result)
+	if err := r.redis.Set(ctx, key, jsonData, 5*time.Minute).Err(); err != nil {
+		return nil, err
+	}
+
 	return &result, nil
+}
+
+func (r *retailerRepository) GetRetailerCartsFYP(ctx context.Context) ([]dto.GetRetailerCart, error) {
+	var result []dto.GetRetailerCart
+	key := fmt.Sprintln("retail:fyp")
+
+	val, err := r.redis.Get(ctx, key).Result()
+	if err == nil {
+		if err := json.Unmarshal([]byte(val), &result); err != nil {
+			return result, nil
+		}
+	}
+	if err := r.db.WithContext(ctx).Model(&entity.RetailerCart{}).
+		Select(
+			"retailer_carts.id as id",
+			"cp.crop as hs_name",
+			"dp.name as distributor_name",
+			"rs.name as retailer_name",
+			"retailer_carts.quantity",
+			"retailer_carts.update_time as time").
+		Joins("JOIN distributions as ds ON ds.id = retailer_carts.id").
+		Joins("JOIM distrbutor_profiles as dp ON dp.id = retailer_carts.distributor_profile_id").
+		Joins("JOIN retailer_profiles as a rs ON rs.id = retailer_carts.retailer_profile_id").
+		Joins("JOIN harvests as hs ON hs.id = ds.id").
+		Joins("JOIN crops cs ON cs.id = hs.id").
+		Order("RAND()").
+		Scan(result).
+		Error; err != nil {
+		return nil, err
+	}
+
+	if len(result) == 0 {
+		return result, gorm.ErrEmptySlice
+	}
+
+	jsonData, _ := json.Marshal(result)
+	if err := r.redis.Set(ctx, key, jsonData, 5*time.Minute).Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -1,0 +1,128 @@
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+       MYSQL_ROOT_PASSWORD: rootpassword
+       MYSQL_DATABASE: case_kafka_db
+       MYSQL_USER: kafka_user
+       MYSQL_PASSWORD: kafka_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - case_kafka_net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - case_kafka_net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9002:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - case_kafka_net
+  
+  redis:
+    image: redis:latest
+    container_name: redis-local
+    ports:
+      - "6379:6379"
+    networks:
+      - case_kafka_net
+
+  service_user:
+    build:
+      context: ../service_user
+    container_name: service_user
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../service_user/.env
+    depends_on:
+      - kafka
+      - redis
+      - mysql
+    networks:
+      - case_kafka_net
+
+  service_store:
+    build:
+      context: ../service_store
+    container_name: service_store
+    ports:
+      - "3001:3001"
+    env_file:
+      - ../service_store/.env
+    depends_on:
+      - kafka
+      - redis
+      - mysql
+    networks:
+      - case_kafka_net
+
+  service_product:
+    build:
+      context: ../service_product
+    container_name: service_product
+    ports:
+      - "3002:3002"
+    env_file:
+      - ../service_product/.env
+    depends_on:
+      - kafka
+      - redis
+      - mysql
+    networks:
+      - case_kafka_net
+
+  service_cart:
+    build:
+      context: ../service_cart
+    container_name: service_cart
+    ports:
+      - "3003:3003"
+    env_file:
+      - ../service_cart/.env
+    depends_on:
+      - kafka
+      - redis
+      - mysql
+    networks:
+      - case_kafka_net
+
+  service_notification:
+    build:
+      context: ../service_notification
+    container_name: service_notification
+    env_file:
+      - ../service_notification/.env
+    networks:
+      - case_kafka_net
+
+networks:
+  case_kafka_net:
+    driver: bridge
+volumes:  
+  mysql_data:

@@ -31,38 +31,38 @@ func main() {
 		log.Fatalf("env : %v", err)
 	}
 
-	db, err := database.ConnectDB()
+	db, rdb, err := database.ConnectDB()
 	if err != nil {
 		log.Fatalf("db: %v", err)
 	}
 
 	// auth
-	authRepo := repository.NewAuthRepository(db)
+	authRepo := repository.NewAuthRepository(db, rdb)
 	authUC := usecase.NewAuthUsecase(authRepo)
 	authHandler := handler.NewAuthHandler(authUC)
 
 	// user
-	userRepo := repository.NewUserRepository(db)
+	userRepo := repository.NewUserRepository(db, rdb, authRepo)
 	userUC := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUC)
 
 	// farmer
-	farmerRepo := repository.NewFarmerRepository(db)
+	farmerRepo := repository.NewFarmerRepository(db, rdb)
 	farmerUC := usecase.NewFarmerUsecase(farmerRepo)
 	farmerHandler := handler.NewFarmerHandler(farmerUC)
 
 	// distributor
-	distributorRepo := repository.NewDistributorRepository(db)
+	distributorRepo := repository.NewDistributorRepository(db, rdb)
 	distributorUC := usecase.NewDistributorUsecase(distributorRepo)
 	distributorHandler := handler.NewDistributorHandler(distributorUC)
 
 	// retailer
-	retailerRepo := repository.NewRetailerRepository(db)
+	retailerRepo := repository.NewRetailerRepository(db, rdb)
 	retailerUC := usecase.NewRetailerUsecase(retailerRepo)
 	retailerHandler := handler.NewRetailerHandler(retailerUC)
 
 	// middleware
-	middlewareAuth := middleware.NewAuthMiddleware(authRepo)
+	middlewareAuth := middleware.NewAuthMiddleware(authRepo, rdb)
 
 	// routes
 	r := route.NewRoutes(authHandler, userHandler, farmerHandler, distributorHandler, retailerHandler, middlewareAuth)

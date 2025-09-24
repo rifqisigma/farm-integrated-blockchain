@@ -74,7 +74,7 @@ func (h *Farmerhandler) CreateHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.farmerUC.CreateHarvest(&input)
+	err := h.farmerUC.CreateHarvest(r.Context(), &input)
 	if err != nil {
 		switch err {
 		case helper.ErrInvalidTime:
@@ -145,7 +145,7 @@ func (h *Farmerhandler) UpdateHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.farmerUC.UpdateHarvest(&input); err != nil {
+	if err := h.farmerUC.UpdateHarvest(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -198,7 +198,7 @@ func (h *Farmerhandler) DeleteHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.farmerUC.DeleteHarvest(claims.ProfileId, uint(harvestId)); err != nil {
+	if err := h.farmerUC.DeleteHarvest(r.Context(), claims.ProfileId, uint(harvestId)); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -263,7 +263,7 @@ func (h *Farmerhandler) AcceptedFarmerForDistributor(w http.ResponseWriter, r *h
 		return
 	}
 
-	if err := h.farmerUC.AcceptedFarmerForDistributor(&input); err != nil {
+	if err := h.farmerUC.AcceptedFarmerForDistributor(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -295,7 +295,7 @@ func (h *Farmerhandler) ListHarvestByFarmerId(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	result, err := h.farmerUC.ListHarvestByFarmerId(claims.ProfileId)
+	result, err := h.farmerUC.ListHarvestByFarmerId(r.Context(), claims.ProfileId)
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -333,7 +333,7 @@ func (h *Farmerhandler) HarvestById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.farmerUC.HarvestById(uint(harvestId))
+	result, err := h.farmerUC.HarvestById(r.Context(), uint(harvestId))
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -354,7 +354,7 @@ func (h *Farmerhandler) HarvestById(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @param search query string true "query search"
-// @Success 200 {object} dto.GetHarvestById
+// @Success 200 {object} []dto.GetListHarvest
 // @Success 204 {object} []dto.GetListHarvest
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
@@ -369,7 +369,39 @@ func (h *Farmerhandler) SearchHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.farmerUC.SearchHarvest(search)
+	result, err := h.farmerUC.SearchHarvest(r.Context(), search)
+	if err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		case gorm.ErrEmptySlice:
+			helper.HttpWriter(w, http.StatusNoContent, result)
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	helper.HttpWriter(w, http.StatusOK, result)
+}
+
+// Get FYP Harvest godoc
+// @Summary Get FYP harvest.
+// @Description This endpoint for get FYP harvest.
+// @Tags Farmer
+// @Accept json
+// @Produce json
+// @Success 200 {object} []dto.GetListHarvest
+// @Success 204 {object} []dto.GetListHarvest
+// @Failure 401 {object} dto.ResponseError
+// @Failure 404 {object} dto.ResponseError
+// @Failure 403 {object} dto.ResponseError
+// @Failure 500 {object} dto.ResponseError
+// @Router /farm/fyp [get]
+// @Security BearerAuth
+func (h *Farmerhandler) ListHarvestFYP(w http.ResponseWriter, r *http.Request) {
+
+	result, err := h.farmerUC.ListHarvestFYP(r.Context())
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:

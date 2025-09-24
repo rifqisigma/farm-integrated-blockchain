@@ -4,8 +4,8 @@ import "farm-integrated-web3/entity"
 
 // gmail traditional
 type LoginRequest struct {
-	Email    string `json:"email"  validate:"required,email"`
-	Password string `json:"password"  validate:"required"`
+	Email    string `json:"email"  validate:"required,email" example:"rajaSukasari@gmail.com"`
+	Password string `json:"password"  validate:"required" example:"12345678"`
 }
 
 type LoginResponse struct {
@@ -18,9 +18,9 @@ type LoginResponse struct {
 }
 
 type RegisterRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password"  validate:"required"`
-	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email" example:"rajaSukasari@gmail.com"`
+	Password string `json:"password"  validate:"required" example:"1234567"`
+	Name     string `json:"name" validate:"required" example:"name"`
 }
 
 type RegisterResponse struct {
@@ -33,6 +33,6 @@ type RegisterResponse struct {
 type UserResetPasswordRequest struct {
 	Email              string `json:"-" validate:"required"`
 	Token              string `json:"-" validate:"required"`
-	NewPassword        string `json:"new_password" validate:"required"`
-	ConfirmNewPassword string `json:"confirm_new_password" validate:"required"`
+	NewPassword        string `json:"new_password" validate:"required" example:"7654321"`
+	ConfirmNewPassword string `json:"confirm_new_password" validate:"required" example:"7654321"`
 }

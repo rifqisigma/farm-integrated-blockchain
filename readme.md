@@ -25,3 +25,4 @@ Aplikasi ini menggunakan pendekatan **Clean Architecture** dengan pemisahan laye
 - **Database**: [MySQL](https://www.mysql.com/)  
 - **Blockchain**: [Hyperledger Fabric](https://www.hyperledger.org/use/fabric)  
 - **Architecture**: Clean Architecture  
+- **Redis**: Caching layer untuk meingkatkan peforma aplikasi backend.

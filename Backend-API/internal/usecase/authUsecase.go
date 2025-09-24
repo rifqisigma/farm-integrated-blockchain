@@ -1,26 +1,28 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"farm-integrated-web3/dto"
 	"farm-integrated-web3/internal/repository"
 	"farm-integrated-web3/utils/helper"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 type AuthUsecase interface {
-	Register(input *dto.RegisterRequest) error
-	Login(input *dto.LoginRequest) (string, string, error)
-	ValidateUser(token string) error
-	RefreshLongToken(token string) (string, error)
-	ResetPassword(input *dto.UserResetPasswordRequest) error
-	RequestResetPassword(email string) error
-	ResendVerificationEmail(email string) error
-	CreateAccessToken(id uint) (string, error)
-	GetUserInfo(id uint) (*dto.LoginResponse, error)
-	Logout(userId uint) error
-	DeleteAccount(userId uint) error
+	Register(ctx context.Context, input *dto.RegisterRequest) error
+	Login(ctx context.Context, input *dto.LoginRequest) (string, string, error)
+	ValidateUser(ctx context.Context, token string) error
+	RefreshLongToken(ctx context.Context, token string) (string, error)
+	ResetPassword(ctx context.Context, input *dto.UserResetPasswordRequest) error
+	RequestResetPassword(ctx context.Context, email string) error
+	ResendVerificationEmail(ctx context.Context, email string) error
+	CreateAccessToken(ctx context.Context, id uint) (string, error)
+	GetUserInfo(ctx context.Context, id uint) (*dto.LoginResponse, error)
+	Logout(ctx context.Context, userId uint) error
+	DeleteAccount(ctx context.Context, userId uint, role string) error
 }
 
 type authUsecase struct {
@@ -31,11 +33,11 @@ func NewAuthUsecase(authRepo repository.AuthRepository) AuthUsecase {
 	return &authUsecase{authRepo}
 }
 
-func (u *authUsecase) Register(input *dto.RegisterRequest) error {
+func (u *authUsecase) Register(ctx context.Context, input *dto.RegisterRequest) error {
 	hashpw := helper.HashPassword(input.Password)
 
 	input.Password = hashpw
-	dataUser, err := u.authRepo.Register(input)
+	dataUser, err := u.authRepo.Register(ctx, input)
 	if err != nil {
 		return err
 	}
@@ -49,8 +51,8 @@ func (u *authUsecase) Register(input *dto.RegisterRequest) error {
 	return nil
 }
 
-func (u *authUsecase) Login(input *dto.LoginRequest) (string, string, error) {
-	dataUser, err := u.authRepo.Login(input)
+func (u *authUsecase) Login(ctx context.Context, input *dto.LoginRequest) (string, string, error) {
+	dataUser, err := u.authRepo.Login(ctx, input)
 	if err != nil {
 		return "", "", err
 	}
@@ -64,30 +66,35 @@ func (u *authUsecase) Login(input *dto.LoginRequest) (string, string, error) {
 		return "", "", helper.ErrLoginNotSuccess
 	}
 
+	fmt.Println("hello im here")
 	tokenJwt, err := helper.GenerateJWT(dataUser.Email, string(dataUser.Role), dataUser.Id, dataUser.ProfileId, dataUser.IsVerified)
+	fmt.Printf("token: %s", tokenJwt)
+
 	if err != nil {
+
 		return "", "", err
 	}
 
 	tokenJwtLongExp, err := helper.GenerateJWTLongExp(dataUser.Id, dataUser.IsVerified)
+	fmt.Printf("token besar: %s", tokenJwtLongExp)
 	if err != nil {
 		return "", "", err
 	}
 
-	if err := u.authRepo.CreateToken(dataUser.Id, tokenJwtLongExp); err != nil {
+	if err := u.authRepo.CreateToken(ctx, dataUser.Id, tokenJwt); err != nil {
 		return "", "", err
 	}
 
 	return tokenJwt, tokenJwtLongExp, nil
 }
 
-func (u *authUsecase) ValidateUser(token string) error {
+func (u *authUsecase) ValidateUser(ctx context.Context, token string) error {
 	userClaims, err := helper.ParseJWTShortExp(token)
 	if err != nil {
 		return err
 	}
 
-	valid, err := u.authRepo.ValidateUser(userClaims.Email)
+	valid, err := u.authRepo.ValidateUser(ctx, userClaims.Email)
 	if err != nil {
 		return err
 	}
@@ -98,7 +105,7 @@ func (u *authUsecase) ValidateUser(token string) error {
 	return nil
 }
 
-func (u *authUsecase) RefreshLongToken(token string) (string, error) {
+func (u *authUsecase) RefreshLongToken(ctx context.Context, token string) (string, error) {
 	userClaims, err := helper.ParseJWTLongExp(token)
 	if err != nil {
 		return "", err
@@ -107,7 +114,7 @@ func (u *authUsecase) RefreshLongToken(token string) (string, error) {
 	return helper.GenerateJWTLongExp(userClaims.UserID, userClaims.Verified)
 }
 
-func (u *authUsecase) ResetPassword(input *dto.UserResetPasswordRequest) error {
+func (u *authUsecase) ResetPassword(ctx context.Context, input *dto.UserResetPasswordRequest) error {
 	jwtClaims, err := helper.ParseJWTShortExp(input.Token)
 	if err != nil {
 		return helper.ErrInvalidToken
@@ -115,15 +122,15 @@ func (u *authUsecase) ResetPassword(input *dto.UserResetPasswordRequest) error {
 	if input.ConfirmNewPassword != input.NewPassword {
 		return helper.ErrBadRequest
 	}
-	if err := u.authRepo.ChangePassword(jwtClaims.Email, input.NewPassword); err != nil {
+	if err := u.authRepo.ChangePassword(ctx, jwtClaims.Email, input.NewPassword); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (u *authUsecase) RequestResetPassword(email string) error {
-	isExist, err := u.authRepo.CheckUserExist(0, email)
+func (u *authUsecase) RequestResetPassword(ctx context.Context, email string) error {
+	isExist, err := u.authRepo.CheckUserExist(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -140,8 +147,8 @@ func (u *authUsecase) RequestResetPassword(email string) error {
 	return nil
 }
 
-func (u *authUsecase) ResendVerificationEmail(email string) error {
-	isExist, err := u.authRepo.CheckUserExist(0, email)
+func (u *authUsecase) ResendVerificationEmail(ctx context.Context, email string) error {
+	isExist, err := u.authRepo.CheckUserExist(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -158,8 +165,8 @@ func (u *authUsecase) ResendVerificationEmail(email string) error {
 	return nil
 }
 
-func (u *authUsecase) CreateAccessToken(id uint) (string, error) {
-	dataUser, err := u.authRepo.GetUserInfo(id)
+func (u *authUsecase) CreateAccessToken(ctx context.Context, id uint) (string, error) {
+	dataUser, err := u.authRepo.GetUserInfo(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -171,8 +178,8 @@ func (u *authUsecase) CreateAccessToken(id uint) (string, error) {
 	return token, nil
 }
 
-func (u *authUsecase) GetUserInfo(id uint) (*dto.LoginResponse, error) {
-	result, err := u.authRepo.GetUserInfo(id)
+func (u *authUsecase) GetUserInfo(ctx context.Context, id uint) (*dto.LoginResponse, error) {
+	result, err := u.authRepo.GetUserInfo(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -180,31 +187,13 @@ func (u *authUsecase) GetUserInfo(id uint) (*dto.LoginResponse, error) {
 	return result, nil
 }
 
-func (u *authUsecase) Logout(userId uint) error {
-	valid, err := u.authRepo.CheckUserExist(userId, "")
-	if err != nil {
-		return err
-	}
-
-	if !valid {
-		return gorm.ErrRecordNotFound
-	}
-
-	return u.authRepo.UpdateRevokeToken(userId)
+func (u *authUsecase) Logout(ctx context.Context, userId uint) error {
+	return u.authRepo.UpdateRevokeToken(ctx, userId)
 
 }
 
-func (u *authUsecase) DeleteAccount(userId uint) error {
-	valid, err := u.authRepo.CheckUserExist(userId, "")
-	if err != nil {
-		return err
-	}
-
-	if !valid {
-		return err
-	}
-
-	if err := u.authRepo.DeleteAccount(userId); err != nil {
+func (u *authUsecase) DeleteAccount(ctx context.Context, userId uint, role string) error {
+	if err := u.authRepo.DeleteAccount(ctx, userId, role); err != nil {
 		return err
 	}
 

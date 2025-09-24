@@ -64,7 +64,7 @@ func (h *UserHandler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userUC.CreateProfile(&input); err != nil {
+	if err := h.userUC.CreateProfile(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrDuplicatedKey:
 			helper.HttpError(w, http.StatusConflict, err.Error())
@@ -123,7 +123,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userUC.ChangePassword(&input); err != nil {
+	if err := h.userUC.ChangePassword(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -170,7 +170,7 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userUC.UpdateProfile(&input); err != nil {
+	if err := h.userUC.UpdateProfile(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -219,7 +219,7 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.userUC.UpdateRole(&input); err != nil {
+	if err := h.userUC.UpdateRole(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -230,4 +230,35 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.HttpWriter(w, http.StatusOK, nil)
+}
+
+// GET USER godoc
+// @Summary Me.
+// @Description This endpoint for get detail info user .
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.GetUser
+// @Failure 500 {object} dto.ResponseError
+// @Router /user/me [get]
+// @Security BearerAuth
+func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
+	if !ok {
+		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	result, err := h.userUC.Me(r.Context(), claims.UserID)
+	if err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	helper.HttpWriter(w, http.StatusOK, result)
 }

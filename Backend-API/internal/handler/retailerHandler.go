@@ -68,7 +68,7 @@ func (h *RetailerHandler) AddRetailerCart(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := h.retailerUC.AddRetailerCart(&input); err != nil {
+	if err := h.retailerUC.AddRetailerCart(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrInvalidData:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -132,7 +132,7 @@ func (h *RetailerHandler) UpdateRetailerCart(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := h.retailerUC.UpdateRetailerCart(&input); err != nil {
+	if err := h.retailerUC.UpdateRetailerCart(r.Context(), &input); err != nil {
 		switch err {
 		case helper.ErrInvalidTime:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -178,7 +178,7 @@ func (h *RetailerHandler) DeleteRetailerCart(w http.ResponseWriter, r *http.Requ
 
 	vars := mux.Vars(r)
 	retailerCartId, _ := strconv.Atoi(vars["retailer"])
-	if err := h.retailerUC.DeleteRetailerCart(uint(retailerCartId), claims.ProfileId); err != nil {
+	if err := h.retailerUC.DeleteRetailerCart(r.Context(), uint(retailerCartId), claims.ProfileId); err != nil {
 		switch err {
 		case helper.ErrInvalidTime:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -214,7 +214,7 @@ func (h *RetailerHandler) SearchRetailerCart(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	result, err := h.retailerUC.SearchRetailerCart(input)
+	result, err := h.retailerUC.SearchRetailerCart(r.Context(), input)
 	if err != nil {
 		switch err {
 		case gorm.ErrEmptySlice:
@@ -253,7 +253,7 @@ func (h *RetailerHandler) GetRetailerCarts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	result, err := h.retailerUC.GetRetailerCarts(claims.ProfileId)
+	result, err := h.retailerUC.GetRetailerCarts(r.Context(), claims.ProfileId)
 	if err != nil {
 		switch err {
 		case gorm.ErrEmptySlice:
@@ -284,7 +284,35 @@ func (h *RetailerHandler) GetRetailerCarts(w http.ResponseWriter, r *http.Reques
 func (h *RetailerHandler) GetRetailerCartById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	retailerCartId, _ := strconv.Atoi(vars["retailer"])
-	result, err := h.retailerUC.GetRetailerCartById(uint(retailerCartId))
+	result, err := h.retailerUC.GetRetailerCartById(r.Context(), uint(retailerCartId))
+	if err != nil {
+		switch err {
+		case gorm.ErrEmptySlice:
+			helper.HttpWriter(w, http.StatusNoContent, result)
+		default:
+			helper.HttpError(w, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	helper.HttpWriter(w, http.StatusOK, result)
+}
+
+// Get FYP Retailer Cart  godoc
+// @Summary Get FYP retailer cart .
+// @Description This endpoint for get FYP the retailer cart.
+// @Tags Retailer
+// @Accept json
+// @Produce json
+// @Success 200 {object} []dto.GetRetailerCart
+// @Success 204 {object} []dto.GetRetailerCart
+// @Failure 401 {object} dto.ResponseError
+// @Failure 403 {object} dto.ResponseError
+// @Failure 500 {object} dto.ResponseError
+// @Router /retail/{retailer} [get]
+// @Security BearerAuth
+func (h *RetailerHandler) GetRetailerCartsFYP(w http.ResponseWriter, r *http.Request) {
+	result, err := h.retailerUC.GetRetailerCartsFYP(r.Context())
 	if err != nil {
 		switch err {
 		case gorm.ErrEmptySlice:

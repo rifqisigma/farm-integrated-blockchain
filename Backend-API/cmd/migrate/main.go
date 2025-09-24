@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	db, err := database.ConnectDB()
+	db, _, err := database.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,6 +24,9 @@ func main() {
 		&entity.Distribution{},
 		&entity.RetailerCart{},
 		&entity.Token{},
+		&entity.Country{},
+		&entity.Region{},
+		&entity.Regency{},
 	); err != nil {
 		log.Fatal(err)
 	}

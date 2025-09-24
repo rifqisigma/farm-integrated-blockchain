@@ -14,7 +14,7 @@ func HashPassword(password string) string {
 
 func ValidateToken(hashedToken, rawToken string) (bool, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedToken), []byte(rawToken)); err != nil {
-		return false, errors.New("invalid refresh token")
+		return false, errors.New("invalid gmail or password")
 	}
 	return true, nil
 }

@@ -45,7 +45,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authUC.Register(&input); err != nil {
+	if err := h.authUC.Register(r.Context(), &input); err != nil {
 		switch err {
 		case gorm.ErrDuplicatedKey:
 			helper.HttpError(w, http.StatusConflict, err.Error())
@@ -83,16 +83,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortToken, longToken, err := h.authUC.Login(&input)
-	if shortToken == "" {
-		helper.HttpError(w, http.StatusInternalServerError, "short err")
-		return
-	}
-
-	if longToken == "" {
-		helper.HttpError(w, http.StatusInternalServerError, "long err")
-		return
-	}
+	shortToken, longToken, err := h.authUC.Login(r.Context(), &input)
+	println(longToken)
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -128,7 +120,7 @@ func (h *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authUC.ValidateUser(token); err != nil {
+	if err := h.authUC.ValidateUser(r.Context(), token); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, "token is required")
@@ -163,7 +155,7 @@ func (h *AuthHandler) RefreshLongToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newToken, err := h.authUC.RefreshLongToken(token)
+	newToken, err := h.authUC.RefreshLongToken(r.Context(), token)
 	if err != nil {
 		switch err {
 		case helper.ErrInvalidToken:
@@ -197,7 +189,7 @@ func (h *AuthHandler) RequestResetPassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.authUC.RequestResetPassword(email); err != nil {
+	if err := h.authUC.RequestResetPassword(r.Context(), email); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -251,7 +243,7 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authUC.ResetPassword(&input); err != nil {
+	if err := h.authUC.ResetPassword(r.Context(), &input); err != nil {
 		switch err {
 		case helper.ErrInvalidToken:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -277,7 +269,6 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /auth/gmail/resend-verification [post]
 func (h *AuthHandler) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if email == "" {
@@ -285,7 +276,7 @@ func (h *AuthHandler) ResendVerificationEmail(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := h.authUC.ResendVerificationEmail(email); err != nil {
+	if err := h.authUC.ResendVerificationEmail(r.Context(), email); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -318,7 +309,7 @@ func (h *AuthHandler) CreateAccessToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token, err := h.authUC.CreateAccessToken(claims.UserID)
+	token, err := h.authUC.CreateAccessToken(r.Context(), claims.UserID)
 	if err != nil {
 		helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -349,7 +340,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authUC.Logout(claims.UserID); err != nil {
+	if err := h.authUC.Logout(r.Context(), claims.UserID); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -382,7 +373,7 @@ func (h *AuthHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authUC.DeleteAccount(claims.UserID); err != nil {
+	if err := h.authUC.DeleteAccount(r.Context(), claims.UserID, claims.Role); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
