@@ -9,6 +9,6 @@ var (
 	ErrDuplicateToken  = errors.New("token already exists")
 
 	//farm
-	ErrAddHarvestInvalid = errors.New("you cant add harvest at this range of time")
-	ErrInvalidTime       = errors.New("time is invalid")
+	ErrQuantityNotEnough = errors.New("quantity not enough")
+	ErrRoleNotFound      = errors.New("role not found")
 )

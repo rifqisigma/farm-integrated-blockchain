@@ -10,25 +10,28 @@ COPY go.mod go.sum ./
 ENV GOPROXY=https://proxy.golang.org,direct
 RUN go mod download
 
-# Copy semua source code
+# Copy semua source code (tanpa .env)
 COPY . .
 
 # Build binary
-RUN go build -ldflags="-s -w" -o migrate ./cmd/migrate/main.go
-RUN go build -ldflags="-s -w" -o main ./cmd/main.go
+RUN go build -ldflags="-s -w" -o main ./main.go
 
 # Stage 2: Clean final image
 FROM alpine:latest
 
-# Install bash kalau tetap pakai CMD shell
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash curl
 
 WORKDIR /app
 
-# Copy hanya hasil build
-COPY --from=builder /app/migrate .
+# Copy hasil build
 COPY --from=builder /app/main .
 
-EXPOSE 3000
+# ⚠️ Jangan copy .env ke image
+# karena nanti kita mount dari host lewat docker-compose
 
-CMD ["sh", "-c", "./migrate && ./main"]
+# Jalankan program dengan delay agar Besu siap dulu
+CMD sh -c '\
+  echo "⏳ Warming up Besu selama 15 detik..."; \
+  sleep 15; \
+  echo "🚀 Starting main application..."; \
+  ./main'

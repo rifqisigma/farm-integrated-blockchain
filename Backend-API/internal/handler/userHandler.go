@@ -5,6 +5,7 @@ import (
 	"farm-integrated-web3/dto"
 	"farm-integrated-web3/entity"
 	"farm-integrated-web3/internal/usecase"
+
 	"farm-integrated-web3/utils/helper"
 	"farm-integrated-web3/utils/middleware"
 	"net/http"
@@ -72,16 +73,19 @@ func (h *UserHandler) CreateProfile(w http.ResponseWriter, r *http.Request) {
 			helper.HttpError(w, http.StatusNotFound, err.Error())
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
-			return
+
 		}
-		helper.HttpWriter(w, http.StatusOK, nil)
+
+		return
+
 	}
+
+	helper.HttpWriter(w, http.StatusOK, nil)
 }
 
 // Change Password godoc
 // @Summary Change password by email.
-// @Description This endpoint for user want ti change password in app.
-// @Param id path integer true "User ID"
+// @Description This endpoint for user want to change password in app.
 // @Tags User
 // @Accept json
 // @Produce json
@@ -108,6 +112,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input.Email = claims.Email
+	input.UserId = claims.UserID
 	if err := h.validator.Struct(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
@@ -148,7 +153,7 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 403 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /user/update [patch]
+// @Router /user/profile [patch]
 // @Security BearerAuth
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	var input dto.UpdateProfileRequest
@@ -160,6 +165,7 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input.UserId = claims.UserID
+	input.Role = entity.Status(claims.Role)
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -185,7 +191,7 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 // Update Role godoc
 // @Summary Update Role.
-// @Description This endpoint for user update role, the old role must a consumer and can update only one chance, the update role is a farmer, distributor, retailer.
+// @Description This endpoint for user update role, the old role must a consumer and can update only one chance, the update role is a farmer, distributor, seller .
 // @Tags User
 // @Accept json
 // @Produce json

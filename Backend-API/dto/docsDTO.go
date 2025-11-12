@@ -18,21 +18,21 @@ type ResponseRefreshToken struct {
 }
 
 type ResponseAccessToken struct {
-	AccessToken string `json:"token_token" example:"this is access token"`
+	AccessToken string `json:"access_token" example:"this is access token"`
 }
 
 type CountryRequest struct {
-	Name          string        `json:"name" example:"Indonesia" validate:"required"`
-	RegionRequest RegionRequest `json:"region" validate:"required"`
+	Name          string        `json:"name" example:"Indonesia" `
+	RegionRequest RegionRequest `json:"region" `
 }
 
 type RegionRequest struct {
-	Name           string         `json:"name" example:"Jawa Barat"  validate:"required"`
-	RegencyRequest RegencyRequest `json:"regency" validate:"required"`
+	Name           string         `json:"name" example:"Jawa Barat"  `
+	RegencyRequest RegencyRequest `json:"regency" `
 }
 
 type RegencyRequest struct {
-	Name string `json:"name" example:"Bogor"  validate:"required"`
+	Name string `json:"name" example:"Bogor"`
 }
 
 type Country struct {

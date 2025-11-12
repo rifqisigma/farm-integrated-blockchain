@@ -23,7 +23,7 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 }
 
 func (u *userUsecase) ChangePassword(ctx context.Context, input *dto.UserChangePasswordRequest) error {
-	if err := u.userRepo.ChangePassword(ctx, input.Email, input.NewPassword); err != nil {
+	if err := u.userRepo.ChangePassword(ctx, input.UserId, input.Email, input.NewPassword); err != nil {
 		return err
 	}
 

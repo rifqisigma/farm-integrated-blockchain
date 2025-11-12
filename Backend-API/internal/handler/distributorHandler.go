@@ -30,16 +30,14 @@ func NewDistributorHandler(DistributorUC usecase.DistributorUsecase) *Distributo
 // @Tags Distributor
 // @Accept json
 // @Produce json
-// @Param harvest path integer true "harvest id"
-// @Param farmerprofile path integer true "farmer profile id"
-// @Param request body dto.CreateDistributionRequest true "request body create"
+// @Param request body dto.CreateDistribution true "request body create"
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /distribution/farmer/{farmerprofile}/harvest/{harvest} [patch]
+// @Router /distribution [post]
 // @Security BearerAuth
 func (h *DistributorHandler) CreateDistribution(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
@@ -53,20 +51,13 @@ func (h *DistributorHandler) CreateDistribution(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	vars := mux.Vars(r)
-	harvestId, _ := strconv.Atoi(vars["harvest"])
-	farmerProfileId, _ := strconv.Atoi(vars["farmerprofile"])
-
-	var input dto.CreateDistributionRequest
+	var input dto.CreateDistribution
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	input.HarvestId = uint(harvestId)
 	input.DistributorProfileId = claims.ProfileId
-	input.FarmerProfileId = uint(farmerProfileId)
-
 	if err := h.Validator.Struct(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
@@ -76,8 +67,8 @@ func (h *DistributorHandler) CreateDistribution(w http.ResponseWriter, r *http.R
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
-		case gorm.ErrInvalidData:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
+		case helper.ErrQuantityNotEnough:
+			helper.HttpError(w, http.StatusBadRequest, "quantity is to much")
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -94,7 +85,7 @@ func (h *DistributorHandler) CreateDistribution(w http.ResponseWriter, r *http.R
 // @Accept json
 // @Produce json
 // @Param distribution path integer true "distribution id"
-// @Param request body dto.UpdateDistributionRequest true "request body update"
+// @Param request body dto.UpdateDistribution true "request body update"
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 401 {object} dto.ResponseError
@@ -118,7 +109,7 @@ func (h *DistributorHandler) UpdateDistribution(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	distributionId, _ := strconv.Atoi(vars["distribution"])
 
-	var input dto.UpdateDistributionRequest
+	var input dto.UpdateDistribution
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
@@ -136,11 +127,8 @@ func (h *DistributorHandler) UpdateDistribution(w http.ResponseWriter, r *http.R
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
-		case gorm.ErrInvalidData:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
-
-		case helper.ErrInvalidTime:
-			helper.HttpError(w, http.StatusNotFound, err.Error())
+		case helper.ErrQuantityNotEnough:
+			helper.HttpError(w, http.StatusBadRequest, "quantity is to much")
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -183,8 +171,6 @@ func (h *DistributorHandler) DeleteDistribution(w http.ResponseWriter, r *http.R
 
 	if err := h.DistributorUC.DeleteDistribution(r.Context(), uint(distributionId), claims.ProfileId); err != nil {
 		switch err {
-		case helper.ErrInvalidTime:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
 
@@ -204,8 +190,8 @@ func (h *DistributorHandler) DeleteDistribution(w http.ResponseWriter, r *http.R
 // @Accept json
 // @Produce json
 // @Param search query string true "query search"
-// @Success 200 {object} []dto.GetDistribution
-// @Success 204 {object} []dto.GetDistribution
+// @Success 200 {object} []dto.GetListDistribution
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
@@ -240,15 +226,15 @@ func (h *DistributorHandler) SearchDistributions(w http.ResponseWriter, r *http.
 // @Tags Distributor
 // @Accept json
 // @Produce json
-// @Success 200 {object} []dto.GetDistribution
-// @Success 204 {object} []dto.GetDistribution
+// @Success 200 {object} []dto.GetListDistribution
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
 // @Router /distribution [get]
 // @Security BearerAuth
-func (h *DistributorHandler) GetDistributionsByDistributorId(w http.ResponseWriter, r *http.Request) {
+func (h *DistributorHandler) GetListDistributionsByDistributorId(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
 	if !ok {
 		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
@@ -259,7 +245,7 @@ func (h *DistributorHandler) GetDistributionsByDistributorId(w http.ResponseWrit
 		helper.HttpError(w, http.StatusForbidden, "you are not allowed")
 		return
 	}
-	result, err := h.DistributorUC.GetDistributionsByDistributorId(r.Context(), claims.ProfileId)
+	result, err := h.DistributorUC.GetListDistributionsByDistributorId(r.Context(), claims.ProfileId)
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -281,17 +267,18 @@ func (h *DistributorHandler) GetDistributionsByDistributorId(w http.ResponseWrit
 // @Tags Distributor
 // @Accept json
 // @Produce json
+// @param distribution path integer true "distribution id"
 // @Success 200 {object} dto.GetHarvestById
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /distribution/{distribution} [get]
+// @Router /distribution/id/{distribution} [get]
 // @Security BearerAuth
 func (h *DistributorHandler) GetDistributionById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	distributionId, _ := strconv.Atoi(vars["distribution"])
-	result, err := h.DistributorUC.GetDistributionByid(r.Context(), uint(distributionId))
+	result, err := h.DistributorUC.GetDistributionById(r.Context(), uint(distributionId))
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
@@ -313,7 +300,7 @@ func (h *DistributorHandler) GetDistributionById(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param distribution path integer true "distribution cart id"
-// @Param request body dto.UpdateStatusDistributionRequest true "body request"
+// @Param request body dto.UpdateStatusDistribution true "body request"
 // @Success 200
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
@@ -335,7 +322,7 @@ func (h *DistributorHandler) UpdateStatusDistribution(w http.ResponseWriter, r *
 	vars := mux.Vars(r)
 	distributionId, _ := strconv.Atoi(vars["distribution"])
 
-	var input dto.UpdateStatusDistributionRequest
+	var input dto.UpdateStatusDistribution
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
 		return
@@ -360,22 +347,21 @@ func (h *DistributorHandler) UpdateStatusDistribution(w http.ResponseWriter, r *
 	helper.HttpWriter(w, http.StatusOK, nil)
 }
 
-// Approved Retailer Cart  godoc
-// @Summary Approved retailer cart.
-// @Description This endpoint for distributor approve retailer cart.
+// Approved seller  Cart  godoc
+// @Summary Approved seller  cart.
+// @Description This endpoint for distributor approve seller cart.
 // @Tags Distributor
 // @Accept json
 // @Produce json
-// @Param retailerCart path integer true "retailer cart id"
-// @Param request body dto.ApprovedRetailerCart true "body request"
+// @Param sellerbox path integer true "sellerbox id"
 // @Success 200
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /distribution/retailer-cart/{retailerCart} [patch]
+// @Router /distribution/accept/seller/{sellerbox} [patch]
 // @Security BearerAuth
-func (h *DistributorHandler) ApprovedRetailerCartForRetailer(w http.ResponseWriter, r *http.Request) {
+func (h *DistributorHandler) AcceptSeller(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
 	if !ok {
 		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
@@ -386,22 +372,11 @@ func (h *DistributorHandler) ApprovedRetailerCartForRetailer(w http.ResponseWrit
 		helper.HttpError(w, http.StatusForbidden, "you are not allowed")
 		return
 	}
+
 	vars := mux.Vars(r)
-	retailerCartId, _ := strconv.Atoi(vars["retailerCart"])
+	SellerBoxId, _ := strconv.Atoi(vars["sellerbox"])
 
-	var input dto.ApprovedRetailerCart
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		helper.HttpError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	input.RetailerCartId = uint(retailerCartId)
-	input.DistributorProfileId = claims.ProfileId
-
-	if err := h.Validator.Struct(&input); err != nil {
-		helper.HttpError(w, http.StatusBadRequest, err.Error())
-	}
-	if err := h.DistributorUC.ApprovedRetailerCartForRetailer(r.Context(), &input); err != nil {
+	if err := h.DistributorUC.AcceptSeller(r.Context(), claims.ProfileId, uint(SellerBoxId)); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -420,16 +395,16 @@ func (h *DistributorHandler) ApprovedRetailerCartForRetailer(w http.ResponseWrit
 // @Tags Distributor
 // @Accept json
 // @Produce json
-// @Success 200 {object} []dto.GetDistribution
-// @Success 204 {object} []dto.GetDistribution
+// @Success 200 {object} []dto.GetListDistribution
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /distribution/search [get]
+// @Router /distribution/fyp [get]
 // @Security BearerAuth
-func (h *DistributorHandler) GetDistributionFYP(w http.ResponseWriter, r *http.Request) {
-	result, err := h.DistributorUC.GetDistributionFYP(r.Context())
+func (h *DistributorHandler) GetListDistributionFYP(w http.ResponseWriter, r *http.Request) {
+	result, err := h.DistributorUC.GetListDistributionFYP(r.Context())
 	if err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:

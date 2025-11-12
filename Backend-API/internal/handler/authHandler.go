@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"farm-integrated-web3/dto"
 	"farm-integrated-web3/internal/usecase"
+	"fmt"
+
 	"farm-integrated-web3/utils/helper"
 	"farm-integrated-web3/utils/middleware"
+
 	"net/http"
+	"net/url"
 
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
@@ -87,8 +91,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	println(longToken)
 	if err != nil {
 		switch err {
-		case gorm.ErrRecordNotFound:
-			helper.HttpError(w, http.StatusNotFound, "user not found or not verified")
+		case helper.ErrLoginNotSuccess:
+			helper.HttpError(w, http.StatusBadRequest, err.Error())
+		case helper.ErrRoleNotFound:
+			helper.HttpError(w, http.StatusBadRequest, err.Error())
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -143,19 +149,18 @@ func (h *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param token query string true "Refresh token"
 // @Success 200 {object} dto.ResponseRefreshToken
 // @Failure 400 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /auth/gmail/refresh-token [post]
+// @Router /auth/refresh-token [post]
+// @Security BearerAuth
 func (h *AuthHandler) RefreshLongToken(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
-	if token == "" {
-		helper.HttpError(w, http.StatusBadRequest, "token is required")
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaimsLongExp)
+	if !ok {
+		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-
-	newToken, err := h.authUC.RefreshLongToken(r.Context(), token)
+	newToken, err := h.authUC.RefreshLongToken(r.Context(), claims.UserID, claims.Verified)
 	if err != nil {
 		switch err {
 		case helper.ErrInvalidToken:
@@ -183,11 +188,15 @@ func (h *AuthHandler) RefreshLongToken(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} dto.ResponseError
 // @Router /auth/gmail/forgot-password [post]
 func (h *AuthHandler) RequestResetPassword(w http.ResponseWriter, r *http.Request) {
-	email := r.URL.Query().Get("email")
+	emailq := r.URL.Query().Get("email")
+
+	email, _ := url.QueryUnescape(emailq)
 	if email == "" {
 		helper.HttpError(w, http.StatusBadRequest, "email is required")
 		return
 	}
+
+	fmt.Println(email)
 
 	if err := h.authUC.RequestResetPassword(r.Context(), email); err != nil {
 		switch err {
@@ -204,7 +213,7 @@ func (h *AuthHandler) RequestResetPassword(w http.ResponseWriter, r *http.Reques
 
 // Reset password godoc
 // @Summary Reset Password.
-// @Description This endpoint for user request send link reset password at email.
+// @Description This endpoint for user request send only link reset password at email (i cant make ui for reset password form).
 // @Tags Auth
 // @Accept js/ @Produce json
 // @Param request body dto.UserResetPasswordRequest true "Reset password"
@@ -269,6 +278,7 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
+// @Router /auth/gmail/resend-verification [post]
 func (h *AuthHandler) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	if email == "" {

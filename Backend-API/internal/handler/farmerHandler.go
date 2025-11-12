@@ -30,15 +30,14 @@ func NewFarmerHandler(farmerUC usecase.FarmerUsecase) *Farmerhandler {
 // @Tags Farmer
 // @Accept json
 // @Produce json
-// @param crop path integer true "crop id"
-// @param request body dto.HarvestRequest true "create harvest"
+// @param request body dto.HarvestCreate true "create harvest"
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /farm/harvest/crop/{crop} [post]
+// @Router /farm/harvest [post]
 // @Security BearerAuth
 func (h *Farmerhandler) CreateHarvest(w http.ResponseWriter, r *http.Request) {
 
@@ -53,21 +52,13 @@ func (h *Farmerhandler) CreateHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	cropId, _ := strconv.Atoi(vars["crop"])
-	if cropId == 0 {
-		helper.HttpError(w, http.StatusBadRequest, "crop is required")
-		return
-	}
-
-	var input dto.HarvestRequest
+	var input dto.HarvestCreate
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	input.FarmerProfileId = uint(claims.ProfileId)
-	input.CropID = uint(cropId)
 
 	if err := h.validator.Struct(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -77,8 +68,6 @@ func (h *Farmerhandler) CreateHarvest(w http.ResponseWriter, r *http.Request) {
 	err := h.farmerUC.CreateHarvest(r.Context(), &input)
 	if err != nil {
 		switch err {
-		case helper.ErrInvalidTime:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -96,8 +85,7 @@ func (h *Farmerhandler) CreateHarvest(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @param harvest path integer true "harvest id"
-// @param crop path integer true "crop id"
-// @param request body dto.HarvestRequest true "update harvest"
+// @param request body dto.HarvestUpdate true "update harvest"
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 401 {object} dto.ResponseError
@@ -125,12 +113,6 @@ func (h *Farmerhandler) UpdateHarvest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cropId, _ := strconv.Atoi(vars["crop"])
-	if cropId == 0 {
-		helper.HttpError(w, http.StatusBadRequest, "crop is required")
-		return
-	}
-
 	var input dto.HarvestUpdate
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, "invalid request body")
@@ -138,7 +120,7 @@ func (h *Farmerhandler) UpdateHarvest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input.FarmerProfileId = claims.ProfileId
-	input.HarvestId = uint(claims.UserID)
+	input.HarvestId = uint(harvestId)
 
 	if err := h.validator.Struct(&input); err != nil {
 		helper.HttpError(w, http.StatusBadRequest, err.Error())
@@ -149,10 +131,8 @@ func (h *Farmerhandler) UpdateHarvest(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
-		case helper.ErrInvalidTime:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
 
-		case gorm.ErrInvalidData:
+		case helper.ErrQuantityNotEnough:
 			helper.HttpError(w, http.StatusBadRequest, err.Error())
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
@@ -202,8 +182,7 @@ func (h *Farmerhandler) DeleteHarvest(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
-		case helper.ErrInvalidTime:
-			helper.HttpError(w, http.StatusBadRequest, err.Error())
+
 		default:
 			helper.HttpError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -221,7 +200,6 @@ func (h *Farmerhandler) DeleteHarvest(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param distribution path integer true "distribution id"
-// @Param request body dto.AcceptFarmerForDistributor true "request body accept"
 // @Success 200
 // @Failure 400 {object} dto.ResponseError
 // @Failure 401 {object} dto.ResponseError
@@ -230,7 +208,7 @@ func (h *Farmerhandler) DeleteHarvest(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} dto.ResponseError
 // @Router /farm/distribution/{distribution} [patch]
 // @Security BearerAuth
-func (h *Farmerhandler) AcceptedFarmerForDistributor(w http.ResponseWriter, r *http.Request) {
+func (h *Farmerhandler) AcceptDistribution(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
 	if !ok {
 		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
@@ -249,21 +227,7 @@ func (h *Farmerhandler) AcceptedFarmerForDistributor(w http.ResponseWriter, r *h
 		return
 	}
 
-	var input dto.AcceptFarmerForDistributor
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		helper.HttpError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	input.FarmerProfieId = claims.ProfileId
-	input.DistributionId = uint(distributionId)
-
-	if err := h.validator.Struct(&input); err != nil {
-		helper.HttpError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.farmerUC.AcceptedFarmerForDistributor(r.Context(), &input); err != nil {
+	if err := h.farmerUC.AcceptDistributor(r.Context(), claims.ProfileId, uint(distributionId)); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			helper.HttpError(w, http.StatusNotFound, err.Error())
@@ -274,6 +238,141 @@ func (h *Farmerhandler) AcceptedFarmerForDistributor(w http.ResponseWriter, r *h
 	}
 }
 
+// Accepted Collector godoc
+// @Summary Accepted collector-harvest for collector.
+// @Description This endpoint for farmer accept the collector, the collector cant proceed  to next step if farmer not yet accept it.
+// @Tags Farmer
+// @Accept json
+// @Produce json
+// @Param collector path integer true "collector id"
+// @Success 200
+// @Failure 400 {object} dto.ResponseError
+// @Failure 401 {object} dto.ResponseError
+// @Failure 404 {object} dto.ResponseError
+// @Failure 403 {object} dto.ResponseError
+// @Failure 500 {object} dto.ResponseError
+// @Router /farm/collector/{collector} [patch]
+// @Security BearerAuth
+func (h *Farmerhandler) AcceptHarvestCollector(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
+	if !ok {
+		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if claims.Role != string(entity.Farmer) {
+		helper.HttpError(w, http.StatusForbidden, "forbidden entry")
+		return
+	}
+
+	vars := mux.Vars(r)
+	collectorId, _ := strconv.Atoi(vars["collector"])
+	if collectorId == 0 {
+		helper.HttpError(w, http.StatusBadRequest, "harvest is required")
+		return
+	}
+
+	if err := h.farmerUC.AcceptHarvestCollector(r.Context(), claims.ProfileId, uint(collectorId)); err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+}
+
+// Accepted Processor godoc
+// @Summary Accepted processor-harvest for processor.
+// @Description This endpoint for farmer accept the processor, the processor cant proceed  to next step if farmer not yet accept it.
+// @Tags Farmer
+// @Accept json
+// @Produce json
+// @Param processor path integer true "processor id"
+// @Success 200
+// @Failure 400 {object} dto.ResponseError
+// @Failure 401 {object} dto.ResponseError
+// @Failure 404 {object} dto.ResponseError
+// @Failure 403 {object} dto.ResponseError
+// @Failure 500 {object} dto.ResponseError
+// @Router /farm/processor/{processor} [patch]
+// @Security BearerAuth
+func (h *Farmerhandler) AcceptHarvestProcessor(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
+	if !ok {
+		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if claims.Role != string(entity.Farmer) {
+		helper.HttpError(w, http.StatusForbidden, "forbidden entry")
+		return
+	}
+
+	vars := mux.Vars(r)
+	procesorId, _ := strconv.Atoi(vars["processor"])
+	if procesorId == 0 {
+		helper.HttpError(w, http.StatusBadRequest, "harvest is required")
+		return
+	}
+
+	if err := h.farmerUC.AcceptHarvestProcessor(r.Context(), claims.ProfileId, uint(procesorId)); err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+}
+
+// Update Status Harvest godoc
+// @Summary Update status harvest.
+// @Description This endpoint for farmer update status of harvest.
+// @Tags Farmer
+// @Accept json
+// @Produce json
+// @param harvest path integer true "harvest id"
+// @Success 200
+// @Failure 400 {object} dto.ResponseError
+// @Failure 401 {object} dto.ResponseError
+// @Failure 404 {object} dto.ResponseError
+// @Failure 403 {object} dto.ResponseError
+// @Failure 500 {object} dto.ResponseError
+// @Router /farm/status/{harvest} [patch]
+// @Security BearerAuth
+func (h *Farmerhandler) UpdateStatusHarvest(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
+	if !ok {
+		helper.HttpError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if claims.Role != string(entity.Farmer) {
+		helper.HttpError(w, http.StatusForbidden, "forbidden entry")
+		return
+	}
+	vars := mux.Vars(r)
+	harvestId, _ := strconv.Atoi(vars["harvest"])
+	if harvestId == 0 {
+		helper.HttpError(w, http.StatusBadRequest, "harvest is required")
+		return
+	}
+	if err := h.farmerUC.UpdateStatusHarvest(r.Context(), claims.ProfileId, uint(harvestId)); err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			helper.HttpError(w, http.StatusNotFound, err.Error())
+		default:
+			helper.HttpError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	helper.HttpWriter(w, http.StatusOK, nil)
+}
+
 // Get Harvests By Farmer Id godoc
 // @Summary Get Harvest by Farmer Id.
 // @Description This endpoint for farmer get their own harvests.
@@ -281,12 +380,12 @@ func (h *Farmerhandler) AcceptedFarmerForDistributor(w http.ResponseWriter, r *h
 // @Accept json
 // @Produce json
 // @Success 200 {object} []dto.GetListHarvest
-// @Success 204 {object} []dto.GetListHarvest
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
 // @Failure 500 {object} dto.ResponseError
-// @Router /farm/harvest [get]
+// @Router /farm [get]
 // @Security BearerAuth
 func (h *Farmerhandler) ListHarvestByFarmerId(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*helper.JWTclaims)
@@ -355,7 +454,7 @@ func (h *Farmerhandler) HarvestById(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @param search query string true "query search"
 // @Success 200 {object} []dto.GetListHarvest
-// @Success 204 {object} []dto.GetListHarvest
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError
@@ -392,7 +491,7 @@ func (h *Farmerhandler) SearchHarvest(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} []dto.GetListHarvest
-// @Success 204 {object} []dto.GetListHarvest
+// @Success 204
 // @Failure 401 {object} dto.ResponseError
 // @Failure 404 {object} dto.ResponseError
 // @Failure 403 {object} dto.ResponseError

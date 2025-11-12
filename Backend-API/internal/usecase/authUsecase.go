@@ -2,12 +2,16 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"farm-integrated-web3/dto"
 	"farm-integrated-web3/internal/repository"
+
 	"farm-integrated-web3/utils/helper"
 	"fmt"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -15,22 +19,23 @@ type AuthUsecase interface {
 	Register(ctx context.Context, input *dto.RegisterRequest) error
 	Login(ctx context.Context, input *dto.LoginRequest) (string, string, error)
 	ValidateUser(ctx context.Context, token string) error
-	RefreshLongToken(ctx context.Context, token string) (string, error)
+	RefreshLongToken(ctx context.Context, userId uint, validate bool) (string, error)
 	ResetPassword(ctx context.Context, input *dto.UserResetPasswordRequest) error
 	RequestResetPassword(ctx context.Context, email string) error
 	ResendVerificationEmail(ctx context.Context, email string) error
 	CreateAccessToken(ctx context.Context, id uint) (string, error)
-	GetUserInfo(ctx context.Context, id uint) (*dto.LoginResponse, error)
+
 	Logout(ctx context.Context, userId uint) error
 	DeleteAccount(ctx context.Context, userId uint, role string) error
 }
 
 type authUsecase struct {
 	authRepo repository.AuthRepository
+	redis    *redis.Client
 }
 
-func NewAuthUsecase(authRepo repository.AuthRepository) AuthUsecase {
-	return &authUsecase{authRepo}
+func NewAuthUsecase(authRepo repository.AuthRepository, redis *redis.Client) AuthUsecase {
+	return &authUsecase{authRepo, redis}
 }
 
 func (u *authUsecase) Register(ctx context.Context, input *dto.RegisterRequest) error {
@@ -47,7 +52,25 @@ func (u *authUsecase) Register(ctx context.Context, input *dto.RegisterRequest) 
 		return err
 	}
 
-	helper.SendEmailValidateEmail(dataUser.Email, tokenJwt)
+	key := fmt.Sprintln("behind:pending:email_verify")
+	mapping := map[string]interface{}{
+		"op": "email_verify",
+		"data": map[string]interface{}{
+			"email": dataUser.Email,
+			"token": tokenJwt,
+		},
+	}
+
+	dataMap, err := json.Marshal(mapping)
+	if err != nil {
+		return err
+	}
+	if err := u.redis.HSet(ctx, key, "item_"+time.Now().Format("150405.000"), dataMap).Err(); err != nil {
+		return err
+	}
+
+	u.redis.Expire(ctx, key, 10*time.Second)
+
 	return nil
 }
 
@@ -66,7 +89,6 @@ func (u *authUsecase) Login(ctx context.Context, input *dto.LoginRequest) (strin
 		return "", "", helper.ErrLoginNotSuccess
 	}
 
-	fmt.Println("hello im here")
 	tokenJwt, err := helper.GenerateJWT(dataUser.Email, string(dataUser.Role), dataUser.Id, dataUser.ProfileId, dataUser.IsVerified)
 	fmt.Printf("token: %s", tokenJwt)
 
@@ -105,13 +127,8 @@ func (u *authUsecase) ValidateUser(ctx context.Context, token string) error {
 	return nil
 }
 
-func (u *authUsecase) RefreshLongToken(ctx context.Context, token string) (string, error) {
-	userClaims, err := helper.ParseJWTLongExp(token)
-	if err != nil {
-		return "", err
-	}
-
-	return helper.GenerateJWTLongExp(userClaims.UserID, userClaims.Verified)
+func (u *authUsecase) RefreshLongToken(ctx context.Context, userId uint, validate bool) (string, error) {
+	return helper.GenerateJWTLongExp(userId, validate)
 }
 
 func (u *authUsecase) ResetPassword(ctx context.Context, input *dto.UserResetPasswordRequest) error {
@@ -143,7 +160,25 @@ func (u *authUsecase) RequestResetPassword(ctx context.Context, email string) er
 		return err
 	}
 
-	helper.SendEmailResetPassword(email, token)
+	key := fmt.Sprintln("behind:pending:reset_password")
+	mapping := map[string]interface{}{
+		"op": "reset_password",
+		"data": map[string]interface{}{
+
+			"email": email,
+			"token": token,
+		},
+	}
+
+	dataMap, err := json.Marshal(mapping)
+	if err != nil {
+		return err
+	}
+	if err := u.redis.HSet(ctx, key, "item_"+time.Now().Format("150405.000"), dataMap).Err(); err != nil {
+		return err
+	}
+
+	u.redis.Expire(ctx, key, 10*time.Second)
 	return nil
 }
 
@@ -161,7 +196,24 @@ func (u *authUsecase) ResendVerificationEmail(ctx context.Context, email string)
 		return err
 	}
 
-	helper.SendEmailValidateEmail(email, token)
+	key := fmt.Sprintln("behind:pending:email_verify")
+	mapping := map[string]interface{}{
+		"op": "email_verify",
+		"data": map[string]interface{}{
+			"email": email,
+			"token": token,
+		},
+	}
+
+	dataMap, err := json.Marshal(mapping)
+	if err != nil {
+		return err
+	}
+	if err := u.redis.HSet(ctx, key, "item_"+time.Now().Format("150405.000"), dataMap).Err(); err != nil {
+		return err
+	}
+
+	u.redis.Expire(ctx, key, 10*time.Second)
 	return nil
 }
 
@@ -170,21 +222,17 @@ func (u *authUsecase) CreateAccessToken(ctx context.Context, id uint) (string, e
 	if err != nil {
 		return "", err
 	}
+
 	token, err := helper.GenerateJWT(dataUser.Email, string(dataUser.Role), dataUser.Id, dataUser.ProfileId, dataUser.IsVerified)
 	if err != nil {
 		return "", err
 	}
 
-	return token, nil
-}
-
-func (u *authUsecase) GetUserInfo(ctx context.Context, id uint) (*dto.LoginResponse, error) {
-	result, err := u.authRepo.GetUserInfo(ctx, id)
-	if err != nil {
-		return nil, err
+	if err := u.authRepo.CreateToken(ctx, dataUser.Id, token); err != nil {
+		return "", err
 	}
 
-	return result, nil
+	return token, nil
 }
 
 func (u *authUsecase) Logout(ctx context.Context, userId uint) error {

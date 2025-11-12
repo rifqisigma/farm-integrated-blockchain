@@ -3,6 +3,6 @@ package handler
 type ConsumerHandler struct {
 }
 
-func NewRetailerRepository() *ConsumerHandler {
+func NewConsumerHandler() *ConsumerHandler {
 	return &ConsumerHandler{}
 }

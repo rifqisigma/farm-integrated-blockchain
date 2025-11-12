@@ -1,0 +1,159 @@
+  version: "3.9"
+
+  services:
+    mysql:
+      image: mysql:latest
+      container_name: mysql-db
+      environment:
+        MYSQL_ROOT_PASSWORD: Raja_Sukasar1
+        MYSQL_DATABASE: agri_db
+        MYSQL_USER: user
+        MYSQL_PASSWORD: Rakyat_Sukasar1
+      volumes:
+        - mysql_data:/var/lib/mysql
+      networks:
+        agri_net:
+          ipv4_address: 172.18.0.9
+      ports:
+        - "3306"
+
+    redis:
+      image: redis:latest
+      container_name: redis-local
+      volumes:
+        - redis_data:/data
+      ports:
+        - "6379"
+      networks:
+        agri_net:
+          ipv4_address: 172.18.0.10
+
+    besu-node1:
+      image: hyperledger/besu:latest
+      container_name: besu-node1
+      command: >
+        --network=dev
+        --miner-enabled
+        --miner-coinbase=0x0000000000000000000000000000000000000001
+        --rpc-http-enabled
+        --rpc-http-host=0.0.0.0
+        --rpc-http-port=8545
+        --rpc-http-api=ETH,NET,WEB3,ADMIN
+        --host-allowlist=*
+        --rpc-http-cors-origins=all
+        --data-path=/var/lib/besu/data
+        --min-gas-price=0
+        --p2p-port=30303
+        --p2p-host=172.18.0.11
+      ports:
+        - "8545:8545"
+        - "30303:30303"
+      volumes:
+        - ./Backend-Blockchain/genesis.json:/config/genesis.json:ro
+        - besu1_data:/var/lib/besu/data
+      networks:
+        agri_net:
+          ipv4_address: 172.18.0.11
+    
+
+    besu-node2:
+      image: hyperledger/besu:latest
+      container_name: besu-node2
+      command: >
+        --network=dev
+        --rpc-http-enabled
+        --rpc-http-host=0.0.0.0
+        --rpc-http-port=8546
+        --rpc-http-api=ETH,NET,WEB3,ADMIN
+        --host-allowlist=*
+        --rpc-http-cors-origins=all
+        --data-path=/var/lib/besu/data
+        --min-gas-price=0
+        --p2p-port=30304
+        --p2p-host=172.18.0.12
+        --bootnodes=enode://4d6cbd7b7ef288f8a7efa4b413d536e0e1496f9c479c7e6e8c5ee9c45302864ec855c4cbfb9f0633582ba550e2ebc53fefc7d9ad7d2c41ec181a6ea1238ee76a@172.18.0.11:30303
+      ports:
+        - "8546:8546"
+        - "30304:30304"
+      volumes:
+        - ./Backend-Blockchain/genesis.json:/config/genesis.json:ro
+        - besu2_data:/var/lib/besu/data
+      networks:
+        agri_net:
+          ipv4_address: 172.18.0.12
+  
+
+    besu-node3:
+      image: hyperledger/besu:latest
+      container_name: besu-node3
+      command: >
+        --network=dev
+        --rpc-http-enabled
+        --rpc-http-host=0.0.0.0
+        --rpc-http-port=8547
+        --rpc-http-api=ETH,NET,WEB3,ADMIN
+        --host-allowlist=*
+        --rpc-http-cors-origins=all
+        --data-path=/var/lib/besu/data
+        --min-gas-price=0
+        --p2p-port=30305
+        --p2p-host=172.18.0.13
+        --bootnodes=enode://4d6cbd7b7ef288f8a7efa4b413d536e0e1496f9c479c7e6e8c5ee9c45302864ec855c4cbfb9f0633582ba550e2ebc53fefc7d9ad7d2c41ec181a6ea1238ee76a@172.18.0.11:30303
+      ports:
+        - "8547:8547"
+        - "30305:30305"
+      volumes:
+        - ./Backend-Blockchain/genesis.json:/config/genesis.json:ro
+        - besu3_data:/var/lib/besu/data
+      networks:
+        agri_net:
+          ipv4_address: 172.18.0.13
+
+    main_api:
+      build:
+        context: ./Backend-API
+      container_name: main-api
+      ports:
+        - "8000:8000"
+      env_file:
+        - ./Backend-API/.env
+      depends_on:
+        - redis
+        - mysql
+      networks:
+        - api_net
+        - agri_net
+
+    blockchain_api:
+      build:
+        context: ./Backend-Blockchain
+      container_name: blockchain-api
+      ports:
+        - "8001:8001"
+      networks:
+        - api_net
+        - agri_net
+      volumes:
+        - ./Backend-Blockchain/.env:/app/.env 
+      depends_on:
+        - besu-node1
+        - besu-node2
+        - besu-node3
+
+
+
+  networks:
+    agri_net:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 172.18.0.0/16
+    api_net:
+      driver: bridge
+
+  volumes:
+    mysql_data:
+    redis_data:
+    besu1_data:
+    besu2_data:
+    besu3_data:

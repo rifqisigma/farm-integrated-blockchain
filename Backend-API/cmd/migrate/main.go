@@ -14,19 +14,32 @@ func main() {
 	}
 
 	if err := db.AutoMigrate(
+		// User dan token harus paling awal
 		&entity.User{},
-		&entity.ConsumerProfile{},
-		&entity.DistributorProfile{},
-		&entity.FarmerProfile{},
-		&entity.RetailerProfile{},
-		&entity.Crop{},
-		&entity.Harvest{},
-		&entity.Distribution{},
-		&entity.RetailerCart{},
 		&entity.Token{},
+
+		// Geo data
 		&entity.Country{},
 		&entity.Region{},
 		&entity.Regency{},
+
+		// Master data
+		&entity.Crop{},
+
+		// Profile (karena child-nya nanti butuh ini)
+		&entity.FarmerProfile{},
+		&entity.DistributorProfile{},
+		&entity.SellerProfile{},
+		&entity.ProcessorProfile{},
+		&entity.CollectorProfile{},
+		&entity.ConsumerProfile{},
+
+		// Transaction data
+		&entity.Harvest{},
+		&entity.HarvestCollector{},
+		&entity.HarvestProcessor{},
+		&entity.Distribution{},
+		&entity.SellerBox{},
 	); err != nil {
 		log.Fatal(err)
 	}

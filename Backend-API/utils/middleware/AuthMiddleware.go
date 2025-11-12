@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"context"
+
 	"farm-integrated-web3/internal/repository"
+	auth "farm-integrated-web3/internal/repository"
 	"farm-integrated-web3/utils/helper"
 	"fmt"
 	"net/http"
@@ -17,7 +19,7 @@ type key int
 const UserContextKey key = 1
 
 type AuthMiddleware struct {
-	authRepo repository.AuthRepository
+	authRepo auth.AuthRepository
 	redis    *redis.Client
 }
 
@@ -57,6 +59,16 @@ func (a *AuthMiddleware) Auth(next http.Handler) http.Handler {
 		_, err = pipe.Exec(r.Context())
 		if err != nil {
 			helper.HttpError(w, http.StatusInternalServerError, "Rate limiter error")
+			return
+		}
+
+		valid, err := a.authRepo.ValidateToken(r.Context(), claims.UserID, tokenString)
+		if !valid {
+			helper.HttpError(w, http.StatusUnauthorized, "Token not valid")
+			return
+		}
+		if err != nil {
+			helper.HttpError(w, http.StatusUnauthorized, "Token error")
 			return
 		}
 
@@ -108,11 +120,6 @@ func (a *AuthMiddleware) RefreshTokenMiddleware(next http.Handler) http.Handler 
 		count, _ := cnt.Result()
 		if int(count) > limit {
 			helper.HttpError(w, http.StatusTooManyRequests, "Rate limit exceeded")
-			return
-		}
-
-		if err := a.authRepo.ValidateToken(r.Context(), claims.UserID, tokenString); err != nil {
-			helper.HttpError(w, http.StatusUnauthorized, "Token expired")
 			return
 		}
 

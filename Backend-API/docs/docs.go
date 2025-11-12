@@ -216,50 +216,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/gmail/refresh-token": {
-            "post": {
-                "description": "This endpoint for get new refresh token, for get new Refresh token you must have  a valid refresh token .",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "New Refresh Token.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Refresh token",
-                        "name": "token",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseRefreshToken"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/gmail/register": {
             "post": {
                 "description": "This endpoint for registery new user.",
@@ -309,9 +265,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/gmail/resend-verification": {
+            "post": {
+                "description": "This endpoint for user request resend link reset password in email if the user is late in verifying the account.",
+                "consumes": [
+                    "js/ @Produce json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reset Password.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query email",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/gmail/reset-password": {
             "post": {
-                "description": "This endpoint for user request send link reset password at email.",
+                "description": "This endpoint for user request send only link reset password at email (i cant make ui for reset password form).",
                 "consumes": [
                     "js/ @Produce json"
                 ],
@@ -471,14 +465,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/distribution": {
-            "get": {
+        "/auth/refresh-token": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for get distributions by distributor id.",
+                "description": "This endpoint for get new refresh token, for get new Refresh token you must have  a valid refresh token .",
                 "consumes": [
                     "application/json"
                 ],
@@ -486,26 +480,57 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Distributor"
+                    "Auth"
                 ],
-                "summary": "Get distributions by distributor id.",
+                "summary": "New Refresh Token.",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetDistribution"
-                            }
+                            "$ref": "#/definitions/dto.ResponseRefreshToken"
                         }
                     },
-                    "204": {
-                        "description": "No Content",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetDistribution"
-                            }
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/distribution": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get all distribution from blockchain API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get all distribution.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
                         }
                     },
                     "401": {
@@ -535,8 +560,1160 @@ const docTemplate = `{
                 }
             }
         },
-        "/distribution/farmer/{farmerprofile}/harvest/{harvest}": {
+        "/blockchain/distribution/{distribution}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get distribution from blockchain API by Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get harvest processor by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "distribution id",
+                        "name": "distribution",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get all harvest from blockchain API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get all harvest.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest-collector": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get all harvest collector from blockchain API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get all harvest collector.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest-collector/{collector}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest collector from blockchain API by Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get harvest collector by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collector id",
+                        "name": "collector",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest-processor": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get all harvest processor from blockchain API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get all harvest processor.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest-processor/{processor}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest processor from blockchain API by Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get harvest processor by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/harvest/{harvest}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest from blockchain API by Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get harvest by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "harvest id",
+                        "name": "harvest",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/seller-box": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get all seller-box from blockchain API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get all seller-box .",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blockchain/seller-box/{seller-box}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get seller-box from blockchain API by Id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blockchain"
+                ],
+                "summary": "Get seller-box by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "seller-box id",
+                        "name": "seller-box",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest collector by collector profile id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Get harvest collector by collector profile Id.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvestCollector"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/accept/distribution/{distribution}": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for Accept distribution by collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Accept distribution for distributor by collector.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "distribution id",
+                        "name": "distribution",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/accept/processor/{processor}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for Accept harvest processor by collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Accept harvest processor for processor by collector.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/fyp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest collector FYP.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Get harvest collector.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvestCollector"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/harvest/{harvest}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for create harvest collector by collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Create Harvest Collector.",
+                "parameters": [
+                    {
+                        "description": "request body create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCollector"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "harvest id",
+                        "name": "harvest",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/id/{collector}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest collector by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Get harvest collector by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collector id",
+                        "name": "collector",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetHarvestCollectorById"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetHarvestCollectorById"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for search harvest collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Search harvest collector.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search query",
+                        "name": "search",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvestCollector"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collector/{collector}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for Delete harvest collector by collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Delete Harvest Collector.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collector id",
+                        "name": "collector",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for Update harvest collector by collector.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collector"
+                ],
+                "summary": "Update Harvest Collector.",
+                "parameters": [
+                    {
+                        "description": "request body update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCollector"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "collector id",
+                        "name": "collector",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/distribution": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get distributions by distributor id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Distributor"
+                ],
+                "summary": "Get distributions by distributor id.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListDistribution"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            },
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -555,26 +1732,12 @@ const docTemplate = `{
                 "summary": "Create Distributions.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "harvest id",
-                        "name": "harvest",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "farmer profile id",
-                        "name": "farmerprofile",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "request body create",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateDistributionRequest"
+                            "$ref": "#/definitions/dto.CreateDistribution"
                         }
                     }
                 ],
@@ -615,14 +1778,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/distribution/retailer-cart/{retailerCart}": {
+        "/distribution/accept/seller/{sellerbox}": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for distributor approve retailer cart.",
+                "description": "This endpoint for distributor approve seller cart.",
                 "consumes": [
                     "application/json"
                 ],
@@ -632,28 +1795,138 @@ const docTemplate = `{
                 "tags": [
                     "Distributor"
                 ],
-                "summary": "Approved retailer cart.",
+                "summary": "Approved seller  cart.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "retailer cart id",
-                        "name": "retailerCart",
+                        "description": "sellerbox id",
+                        "name": "sellerbox",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "body request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ApprovedRetailerCart"
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/distribution/fyp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get FYP distributions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Distributor"
+                ],
+                "summary": "Get FYP Distributions.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListDistribution"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/distribution/id/{distribution}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get detail information of distribution.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Distributor"
+                ],
+                "summary": "Get distribution by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "distribution id",
+                        "name": "distribution",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetHarvestById"
+                        }
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -689,7 +1962,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for get FYP distributions.",
+                "description": "This endpoint for search distributions.",
                 "consumes": [
                     "application/json"
                 ],
@@ -699,25 +1972,28 @@ const docTemplate = `{
                 "tags": [
                     "Distributor"
                 ],
-                "summary": "Get FYP Distributions.",
+                "summary": "Search Distributions.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query search",
+                        "name": "search",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.GetDistribution"
+                                "$ref": "#/definitions/dto.GetListDistribution"
                             }
                         }
                     },
                     "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetDistribution"
-                            }
-                        }
+                        "description": "No Content"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -747,56 +2023,6 @@ const docTemplate = `{
             }
         },
         "/distribution/{distribution}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "This endpoint for get detail information of distribution.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Distributor"
-                ],
-                "summary": "Get distribution by id.",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.GetHarvestById"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "security": [
                     {
@@ -890,7 +2116,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateDistributionRequest"
+                            "$ref": "#/definitions/dto.UpdateDistribution"
                         }
                     }
                 ],
@@ -963,13 +2189,135 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateStatusDistributionRequest"
+                            "$ref": "#/definitions/dto.UpdateStatusDistribution"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/farm": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for farmer get their own harvests.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farmer"
+                ],
+                "summary": "Get Harvest by Farmer Id.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvest"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/farm/collector/{collector}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for farmer accept the collector, the collector cant proceed  to next step if farmer not yet accept it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farmer"
+                ],
+                "summary": "Accepted collector-harvest for collector.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "collector id",
+                        "name": "collector",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -1023,15 +2371,6 @@ const docTemplate = `{
                         "name": "distribution",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "request body accept",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.AcceptFarmerForDistributor"
-                        }
                     }
                 ],
                 "responses": {
@@ -1100,13 +2439,7 @@ const docTemplate = `{
                         }
                     },
                     "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetListHarvest"
-                            }
-                        }
+                        "description": "No Content"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -1136,70 +2469,6 @@ const docTemplate = `{
             }
         },
         "/farm/harvest": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "This endpoint for farmer get their own harvests.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Farmer"
-                ],
-                "summary": "Get Harvest by Farmer Id.",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetListHarvest"
-                            }
-                        }
-                    },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetListHarvest"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/farm/harvest/crop/{crop}": {
             "post": {
                 "security": [
                     {
@@ -1219,19 +2488,12 @@ const docTemplate = `{
                 "summary": "Create harvest for farmer.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "crop id",
-                        "name": "crop",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "create harvest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.HarvestRequest"
+                            "$ref": "#/definitions/dto.HarvestCreate"
                         }
                     }
                 ],
@@ -1420,20 +2682,77 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "crop id",
-                        "name": "crop",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "update harvest",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.HarvestRequest"
+                            "$ref": "#/definitions/dto.HarvestUpdate"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/farm/processor/{processor}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for farmer accept the processor, the processor cant proceed  to next step if farmer not yet accept it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farmer"
+                ],
+                "summary": "Accepted processor-harvest for processor.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1511,12 +2830,70 @@ const docTemplate = `{
                         }
                     },
                     "204": {
-                        "description": "No Content",
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetListHarvest"
-                            }
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/farm/status/{harvest}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for farmer update status of harvest.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Farmer"
+                ],
+                "summary": "Update status harvest.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "harvest id",
+                        "name": "harvest",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
                         }
                     },
                     "401": {
@@ -1546,14 +2923,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/retail": {
+        "/processor": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for get the retailer cart from retailer id.",
+                "description": "This endpoint for get harvest processor by processor profile id.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1561,27 +2938,507 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Retailer"
+                    "Processor"
                 ],
-                "summary": "Get retailer cart by retailer id.",
+                "summary": "Get harvest processor by processor profile id.",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
+                                "$ref": "#/definitions/dto.GetListHarvestProcessor"
                             }
                         }
                     },
                     "204": {
-                        "description": "No Content",
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for create harvest processor by processor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Create harvest processor.",
+                "parameters": [
+                    {
+                        "description": "req body create",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateProcessor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor/accept/distribution/{distribution}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for Accept distribution by processor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Accept distribution for distributor by processor.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "distribution id",
+                        "name": "distribution",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor/fyp": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest processor FYP.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Get harvest processor FYP.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
+                                "$ref": "#/definitions/dto.GetListHarvestProcessor"
                             }
                         }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor/id/{processor}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get harvest processor by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Get harvest processor by id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetHarvestProcessorById"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for search harvest processor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Search harvest processor.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search query",
+                        "name": "search",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetListHarvestProcessor"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/processor/{processor}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for delete harvest processor by processor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Delete harvest processor.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for update harvest processor by processor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Processor"
+                ],
+                "summary": "Update harvest processor.",
+                "parameters": [
+                    {
+                        "description": "req body update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateProcessor"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "processor id",
+                        "name": "processor",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/seller": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get the seller  cart from seller  id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seller"
+                ],
+                "summary": "Get seller  cart by seller  id.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetSellerBox"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -1604,14 +3461,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/retail/distribution/{distribution}": {
+        "/seller/distribution/{distribution}": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for retailer add the cart of distribution form distribution.",
+                "description": "This endpoint for seller add the cart of distribution form distribution.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1619,9 +3476,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Retailer"
+                    "Seller"
                 ],
-                "summary": "Add retailer cart.",
+                "summary": "Add seller box.",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1636,7 +3493,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateRetailerCartRequest"
+                            "$ref": "#/definitions/dto.CreateSellerBox"
                         }
                     }
                 ],
@@ -1677,14 +3534,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/retail/search": {
+        "/seller/fyp": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for search the  cart of distribution form retailer cart.",
+                "description": "This endpoint for get FYP the seller  cart.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1692,9 +3549,122 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Retailer"
+                    "Seller"
                 ],
-                "summary": "Search retailer cart.",
+                "summary": "Get FYP seller  cart .",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetSellerBox"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/seller/id/{seller}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for get the seller  cart from seller  id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seller"
+                ],
+                "summary": "Get seller  cart by seller  id.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "seller id",
+                        "name": "seller",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetSellerBox"
+                            }
+                        }
+                    },
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/seller/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "This endpoint for search the  cart of distribution form seller cart.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seller"
+                ],
+                "summary": "Search seller  cart.",
                 "parameters": [
                     {
                         "type": "string",
@@ -1710,18 +3680,12 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
+                                "$ref": "#/definitions/dto.GetSellerBox"
                             }
                         }
                     },
                     "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
-                            }
-                        }
+                        "description": "No Content"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -1744,70 +3708,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/retail/{retailer}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "This endpoint for get FYP the retailer cart.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Retailer"
-                ],
-                "summary": "Get FYP retailer cart .",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
-                            }
-                        }
-                    },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.GetRetailerCart"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResponseError"
-                        }
-                    }
-                }
-            },
+        "/seller/{seller}": {
             "delete": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for retailer delete the cart of distribution form distribution.",
+                "description": "This endpoint for seller  delete the cart of distribution form distribution.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1815,14 +3723,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Retailer"
+                    "Seller"
                 ],
-                "summary": "Delete retailer cart.",
+                "summary": "Delete seller  cart.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "retailer id",
-                        "name": "retailer",
+                        "description": "seller id",
+                        "name": "seller",
                         "in": "path",
                         "required": true
                     }
@@ -1862,16 +3770,14 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/retail/{retailer}/distribution/{distribution}": {
+            },
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for retailer update the cart of distribution form distribution.",
+                "description": "This endpoint for seller  update the cart of distribution form distribution.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1879,21 +3785,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Retailer"
+                    "Seller"
                 ],
-                "summary": "Update retailer cart.",
+                "summary": "Update seller  cart.",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "distribution id",
-                        "name": "distribution",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "retailer id",
-                        "name": "retailer",
+                        "description": "seller id",
+                        "name": "seller",
                         "in": "path",
                         "required": true
                     },
@@ -1903,7 +3802,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateRetailerCartRequest"
+                            "$ref": "#/definitions/dto.UpdateSellerBox"
                         }
                     }
                 ],
@@ -1951,7 +3850,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for user want ti change password in app.",
+                "description": "This endpoint for user want to change password in app.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1963,13 +3862,6 @@ const docTemplate = `{
                 ],
                 "summary": "Change password by email.",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "change password",
                         "name": "request",
@@ -2051,14 +3943,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/role": {
+        "/user/profile": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for user update role, the old role must a consumer and can update only one chance, the update role is a farmer, distributor, retailer.",
+                "description": "This endpoint for user update their profile.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2068,15 +3960,15 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Update Role.",
+                "summary": "Update profil.",
                 "parameters": [
                     {
-                        "description": "update role",
+                        "description": "update profile",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateRoleRequest"
+                            "$ref": "#/definitions/dto.UpdateProfileRequest"
                         }
                     }
                 ],
@@ -2117,14 +4009,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/update": {
+        "/user/role": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "This endpoint for user update their profile.",
+                "description": "This endpoint for user update role, the old role must a consumer and can update only one chance, the update role is a farmer, distributor, seller .",
                 "consumes": [
                     "application/json"
                 ],
@@ -2134,15 +4026,15 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Update profil.",
+                "summary": "Update Role.",
                 "parameters": [
                     {
-                        "description": "update profile",
+                        "description": "update role",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateProfileRequest"
+                            "$ref": "#/definitions/dto.UpdateRoleRequest"
                         }
                     }
                 ],
@@ -2259,48 +4151,8 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AcceptFarmerForDistributor": {
-            "type": "object",
-            "required": [
-                "accepted"
-            ],
-            "properties": {
-                "accepted": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "dto.ApprovedRetailerCart": {
-            "type": "object",
-            "required": [
-                "approved"
-            ],
-            "properties": {
-                "approved": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
-        "dto.Country": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Indonesia"
-                },
-                "region": {
-                    "$ref": "#/definitions/dto.Region"
-                }
-            }
-        },
         "dto.CountryRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "region"
-            ],
             "properties": {
                 "name": {
                     "type": "string",
@@ -2311,25 +4163,130 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateDistributionRequest": {
+        "dto.CreateCollector": {
             "type": "object",
             "required": [
-                "final_price",
-                "markup_price",
+                "base_price",
+                "name",
+                "price",
                 "quantity"
             ],
             "properties": {
-                "final_price": {
+                "base_price": {
                     "type": "number",
-                    "example": 220
-                },
-                "markup_price": {
-                    "type": "number",
+                    "minimum": 0.1,
                     "example": 20
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "harvest coffe beans will save in G_Beans 8975"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "G_Beans"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 220
                 },
                 "quantity": {
                     "type": "number",
+                    "minimum": 0.1,
                     "example": 200.5
+                }
+            }
+        },
+        "dto.CreateDistribution": {
+            "type": "object",
+            "required": [
+                "base_price",
+                "country",
+                "desc",
+                "name",
+                "price",
+                "quantity",
+                "transportation"
+            ],
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 20
+                },
+                "country": {
+                    "$ref": "#/definitions/dto.CountryRequest"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "coffe batak to jakarta"
+                },
+                "harvest_collector_id": {
+                    "type": "integer",
+                    "example": 13
+                },
+                "harvest_id": {
+                    "type": "integer",
+                    "example": 13
+                },
+                "harvest_processor_id": {
+                    "type": "integer",
+                    "example": 54
+                },
+                "name": {
+                    "type": "string",
+                    "example": "distribution-coffe 897"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 220
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 200.5
+                },
+                "transportation": {
+                    "type": "string",
+                    "example": "air"
+                }
+            }
+        },
+        "dto.CreateProcessor": {
+            "type": "object",
+            "required": [
+                "base_price",
+                "name",
+                "price",
+                "quantity"
+            ],
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "harvest_collector_id": {
+                    "type": "integer",
+                    "example": 297083
+                },
+                "harvest_id": {
+                    "type": "integer",
+                    "example": 78321
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1
                 }
             }
         },
@@ -2347,8 +4304,10 @@ const docTemplate = `{
                     "enum": [
                         "consumer",
                         "farmer",
+                        "collector",
+                        "processor",
                         "distributor",
-                        "retailer"
+                        "seller"
                     ],
                     "allOf": [
                         {
@@ -2358,41 +4317,66 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateRetailerCartRequest": {
+        "dto.CreateSellerBox": {
             "type": "object",
             "required": [
+                "base_price",
+                "desc",
+                "name",
+                "price",
                 "quantity"
             ],
             "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 20
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "coffe batak to jakarta"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "distribution-coffe 897"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 25
+                },
                 "quantity": {
                     "type": "number",
-                    "example": 600.5
+                    "example": 200.5
                 }
             }
         },
-        "dto.GetDistribution": {
+        "dto.CropCreate": {
+            "type": "object",
+            "required": [
+                "commodity",
+                "name"
+            ],
+            "properties": {
+                "commodity": {
+                    "type": "string",
+                    "example": "Beras"
+                },
+                "harvest_time_span": {
+                    "type": "integer",
+                    "example": 120
+                },
+                "name": {
+                    "type": "string",
+                    "example": "padi"
+                }
+            }
+        },
+        "dto.DataProfile": {
             "type": "object",
             "properties": {
-                "crop_name": {
-                    "type": "string"
-                },
-                "distributor_name": {
-                    "type": "string"
-                },
-                "farmer_name": {
-                    "type": "string"
-                },
-                "final_price": {
-                    "type": "number"
-                },
                 "id": {
                     "type": "integer"
                 },
-                "regency_name": {
-                    "type": "string",
-                    "example": "Bogor"
-                },
-                "time": {
+                "name": {
                     "type": "string"
                 }
             }
@@ -2400,17 +4384,21 @@ const docTemplate = `{
         "dto.GetHarvestById": {
             "type": "object",
             "properties": {
-                "accepted": {
-                    "type": "boolean",
-                    "example": true
-                },
                 "base_price": {
                     "type": "number",
                     "example": 100000000
                 },
+                "commodity": {
+                    "type": "string",
+                    "example": "Yellow Corn"
+                },
                 "crop_name": {
                     "type": "string",
                     "example": "Corn"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "this is coffee beans form central of java"
                 },
                 "farmer_name": {
                     "type": "string",
@@ -2420,6 +4408,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 192
                 },
+                "name": {
+                    "type": "string",
+                    "example": "coffe ke-908"
+                },
                 "quantity": {
                     "type": "number",
                     "example": 100
@@ -2428,9 +4420,164 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Bogor"
                 },
+                "region_name": {
+                    "type": "string",
+                    "example": "Jawa barat"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "time": {
                     "type": "string",
                     "example": "2025-10-09T15:04:05Z"
+                },
+                "tx_block": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "dto.GetHarvestCollectorById": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 20
+                },
+                "collector_id": {
+                    "type": "integer",
+                    "example": 122
+                },
+                "collector_profile_name": {
+                    "type": "string",
+                    "example": "122"
+                },
+                "crop_name": {
+                    "type": "string",
+                    "example": "3083"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "harvest coffe beans will save in G_Beans 8975"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "G_Beans"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 220
+                },
+                "quantity": {
+                    "type": "number",
+                    "example": 200.5
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2024-06-01T15:04:05Z"
+                },
+                "tx_block": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "dto.GetHarvestProcessorById": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 20000
+                },
+                "crop_name": {
+                    "type": "string",
+                    "example": "Waluyo"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "This rice is processed into packaged rice"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 890
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 40000
+                },
+                "processor_profile_name": {
+                    "type": "string",
+                    "example": "Waluyo"
+                },
+                "quantity": {
+                    "type": "number",
+                    "example": 5
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
+                },
+                "tx_block": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "dto.GetListDistribution": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 20
+                },
+                "crop_name": {
+                    "type": "string"
+                },
+                "destination_regency": {
+                    "type": "string",
+                    "example": "Bogor"
+                },
+                "distributor_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "distribution-coffe 897"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 220
+                },
+                "quantity": {
+                    "type": "number",
+                    "example": 20.7
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
+                },
+                "transportation": {
+                    "type": "string",
+                    "example": "air"
                 }
             }
         },
@@ -2440,9 +4587,6 @@ const docTemplate = `{
                 "base_price": {
                     "type": "number",
                     "example": 100000000
-                },
-                "country": {
-                    "$ref": "#/definitions/dto.Country"
                 },
                 "crop_name": {
                     "type": "string",
@@ -2456,9 +4600,21 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "name": {
+                    "type": "string",
+                    "example": "coffe ke-908"
+                },
+                "quantity": {
+                    "type": "number",
+                    "example": 100
+                },
                 "regency_name": {
                     "type": "string",
                     "example": "Bogor"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "time": {
                     "type": "string",
@@ -2466,27 +4622,113 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.GetRetailerCart": {
+        "dto.GetListHarvestCollector": {
             "type": "object",
             "properties": {
-                "distributor_name": {
-                    "type": "string",
-                    "example": "Gopher"
+                "base_price": {
+                    "type": "number",
+                    "example": 20
                 },
-                "harvest_name": {
+                "collector_id": {
+                    "type": "integer",
+                    "example": 122
+                },
+                "collector_profile_name": {
                     "type": "string",
-                    "example": ""
+                    "example": "122"
+                },
+                "crop_name": {
+                    "type": "string",
+                    "example": "3083"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "G_Beans"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 220
+                },
+                "quantity": {
+                    "type": "number",
+                    "example": 200.5
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2024-06-01T15:04:05Z"
+                }
+            }
+        },
+        "dto.GetListHarvestProcessor": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number"
+                },
+                "crop_name": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "processor_profile_name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2025-10-09T15:04:05Z"
+                }
+            }
+        },
+        "dto.GetSellerBox": {
+            "type": "object",
+            "required": [
+                "price"
+            ],
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 89000
+                },
+                "crop_name": {
+                    "type": "string",
+                    "example": "coffe"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "coffe beans"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 25
+                },
                 "quantity": {
                     "type": "number",
-                    "example": 35.32
+                    "example": 90.2
                 },
-                "retailer_name": {
+                "seller_name": {
                     "type": "string",
-                    "example": "Siti"
+                    "example": "Wowo"
                 },
                 "time": {
                     "type": "string",
@@ -2497,7 +4739,9 @@ const docTemplate = `{
         "dto.GetUser": {
             "type": "object",
             "properties": {
-                "data": {},
+                "data": {
+                    "$ref": "#/definitions/dto.DataProfile"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2505,7 +4749,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "is_verified": {
-                    "type": "string"
+                    "type": "boolean"
                 },
                 "provider": {
                     "type": "string"
@@ -2515,21 +4759,29 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.HarvestRequest": {
+        "dto.HarvestCreate": {
             "type": "object",
             "required": [
-                "basePrice",
+                "base_price",
                 "country",
+                "crop",
                 "name",
                 "quantity"
             ],
             "properties": {
-                "basePrice": {
+                "base_price": {
                     "type": "number",
                     "example": 200000000
                 },
                 "country": {
                     "$ref": "#/definitions/dto.CountryRequest"
+                },
+                "crop": {
+                    "$ref": "#/definitions/dto.CropCreate"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "this is fruit form Bogor "
                 },
                 "name": {
                     "type": "string",
@@ -2537,6 +4789,31 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "number",
+                    "example": 100
+                }
+            }
+        },
+        "dto.HarvestUpdate": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "example": 200000000
+                },
+                "country": {
+                    "$ref": "#/definitions/dto.CountryRequest"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "this is fruit form Bogor "
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Jagung ke-1"
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1,
                     "example": 100
                 }
             }
@@ -2569,45 +4846,17 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.Regency": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Bogor"
-                }
-            }
-        },
         "dto.RegencyRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "name": {
                     "type": "string",
                     "example": "Bogor"
-                }
-            }
-        },
-        "dto.Region": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "Jawa Barat"
-                },
-                "regency": {
-                    "$ref": "#/definitions/dto.Regency"
                 }
             }
         },
         "dto.RegionRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "regency"
-            ],
             "properties": {
                 "name": {
                     "type": "string",
@@ -2643,7 +4892,7 @@ const docTemplate = `{
         "dto.ResponseAccessToken": {
             "type": "object",
             "properties": {
-                "token_token": {
+                "access_token": {
                     "type": "string",
                     "example": "this is access token"
                 }
@@ -2680,57 +4929,100 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateDistributionRequest": {
+        "dto.UpdateCollector": {
             "type": "object",
             "properties": {
-                "final_price": {
+                "base_price": {
                     "type": "number",
-                    "example": 350
+                    "minimum": 0.1,
+                    "example": 20
                 },
-                "markup_price": {
+                "desc": {
+                    "type": "string",
+                    "example": "harvest coffe beans will save in G_Beans 8975"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "G_Beans"
+                },
+                "price": {
                     "type": "number",
-                    "example": 50
+                    "minimum": 0.1,
+                    "example": 220
                 },
                 "quantity": {
                     "type": "number",
+                    "minimum": 0.1,
+                    "example": 200.5
+                }
+            }
+        },
+        "dto.UpdateDistribution": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 20
+                },
+                "country": {
+                    "$ref": "#/definitions/dto.CountryRequest"
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "coffe batak to jakarta"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "distribution-coffe 897"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 220
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1,
                     "example": 20.7
+                },
+                "transportation": {
+                    "type": "string",
+                    "example": "air"
+                }
+            }
+        },
+        "dto.UpdateProcessor": {
+            "type": "object",
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number",
+                    "minimum": 0.1
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1
                 }
             }
         },
         "dto.UpdateProfileRequest": {
             "type": "object",
             "required": [
-                "name",
-                "role"
+                "name"
             ],
             "properties": {
                 "name": {
                     "type": "string"
-                },
-                "role": {
-                    "enum": [
-                        "consumer",
-                        "farmer",
-                        "distributor",
-                        "retailer"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entity.Status"
-                        }
-                    ]
-                }
-            }
-        },
-        "dto.UpdateRetailerCartRequest": {
-            "type": "object",
-            "required": [
-                "quantity"
-            ],
-            "properties": {
-                "quantity": {
-                    "type": "number",
-                    "example": 34
                 }
             }
         },
@@ -2742,11 +5034,53 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateStatusDistributionRequest": {
+        "dto.UpdateSellerBox": {
             "type": "object",
+            "required": [
+                "price"
+            ],
+            "properties": {
+                "base_price": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 20
+                },
+                "desc": {
+                    "type": "string",
+                    "example": "coffe batak to jakarta"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "distribution-coffe 897"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 25
+                },
+                "quantity": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "example": 200.5
+                }
+            }
+        },
+        "dto.UpdateStatusDistribution": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
             "properties": {
                 "status": {
                     "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
                     "example": 7
                 }
             }
@@ -2786,17 +5120,23 @@ const docTemplate = `{
         "entity.Status": {
             "type": "string",
             "enum": [
+                "none",
                 "consumer",
                 "farmer",
                 "distributor",
-                "retailer",
+                "seller",
+                "processor",
+                "collector",
                 "admin"
             ],
             "x-enum-varnames": [
+                "None",
                 "Consumer",
                 "Farmer",
                 "Distributor",
-                "Retailer",
+                "Seller",
+                "Processor",
+                "Collector",
                 "Admin"
             ]
         }
@@ -2820,7 +5160,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a Backend for Agricultural of Distribution for reach transparant, decentralization, and immutable.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-
 }
 
 func init() {

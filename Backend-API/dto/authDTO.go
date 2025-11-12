@@ -33,6 +33,7 @@ type RegisterResponse struct {
 type UserResetPasswordRequest struct {
 	Email              string `json:"-" validate:"required"`
 	Token              string `json:"-" validate:"required"`
+	UserId             uint   `json:"-" validate:"required"`
 	NewPassword        string `json:"new_password" validate:"required" example:"7654321"`
 	ConfirmNewPassword string `json:"confirm_new_password" validate:"required" example:"7654321"`
 }
